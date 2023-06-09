@@ -1,4 +1,6 @@
 <?php
+  use MongoDB\BSON\ObjectID;
+  $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
 ?>
 
 <!DOCTYPE html>
@@ -18,8 +20,6 @@
      <style>
      </style>
      <script>
-      function editWish() {
-      }
      </script>
    </head>
 
