@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 09, 2023 at 04:07 AM
+-- Generation Time: Jun 09, 2023 at 06:58 PM
 -- Server version: 10.4.19-MariaDB
 -- PHP Version: 8.0.7
 
@@ -40,23 +40,24 @@ CREATE TABLE `daerah` (
 
 CREATE TABLE `jenis_kejahatan` (
   `idjenis` int(11) NOT NULL,
-  `nama` varchar(255) NOT NULL
+  `nama` varchar(255) NOT NULL,
+  `gambar` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `jenis_kejahatan`
 --
 
-INSERT INTO `jenis_kejahatan` (`idjenis`, `nama`) VALUES
-(1, 'THEFT/OTHER'),
-(2, 'MOTOR VEHICLE THEFT'),
-(3, 'BURGLARY'),
-(4, 'ROBBERY'),
-(5, 'ASSAULT W/DANGEROUS WEAPON'),
-(6, 'THEFT F/AUTO'),
-(7, 'SEX ABUSE'),
-(8, 'HOMICIDE'),
-(9, 'ARSON');
+INSERT INTO `jenis_kejahatan` (`idjenis`, `nama`, `gambar`) VALUES
+(1, 'THEFT/OTHER', 'theft.png'),
+(2, 'MOTOR VEHICLE THEFT', 'vehicletheft.png'),
+(3, 'BURGLARY', 'burglary.png'),
+(4, 'ROBBERY', 'robbery.png'),
+(5, 'ASSAULT W/DANGEROUS WEAPON', 'assault.png'),
+(6, 'THEFT F/AUTO', 'theftf.png'),
+(7, 'SEX ABUSE', 'sexabuse.png'),
+(8, 'HOMICIDE', 'homicide.png'),
+(9, 'ARSON', 'arson.png');
 
 -- --------------------------------------------------------
 
