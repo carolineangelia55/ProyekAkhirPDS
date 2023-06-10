@@ -7,7 +7,7 @@
  font-family: 'Poppins', sans-serif;
  }
  .logo_name, .links_name{
-     margin-top: 3px;
+     line-height:100%;
  }
  .sidebar{
  position: fixed;

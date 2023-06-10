@@ -97,39 +97,39 @@
           </a>
         </li>
         <li>
-          <a href="postingNews.php">
-            <i class='bx bx-folder-plus' ></i>
-            <span class="links_name">Tambah Kasus Baru</span>
+          <a href="#">
+            <i class='bx bx-folder-plus'></i>
+            <span class="links_name">Add New Case</span>
           </a>
         </li>
         <li>
-          <a href="inputGaleri.php">
+          <a href="daftarkasus.php" class="active">
             <i class='bx bx-list-ul' ></i>
-            <span class="links_name">Daftar Kasus</span>
+            <span class="links_name">Cases Lists</span>
           </a>
         </li>
         <li>
           <a href="inputGaleri.php">
             <i class='bx bx-street-view' ></i>
-            <span class="links_name">Data Kriminalitas</span>
+            <span class="links_name">Crime Data</span>
           </a>
         </li>
         <li>
           <a href="kelolaKegiatan.php">
             <i class='bx bx-current-location' ></i>
-            <span class="links_name">Data Daerah</span>
+            <span class="links_name">Region Data</span>
           </a>
         </li>
         <li>
           <a href="inputJadwal.php">
             <i class='bx bx-ghost' ></i>
-            <span class="links_name">Pola Kriminalitas</span>
+            <span class="links_name">Find Crime Pattern</span>
           </a>
         </li>
         <li>
           <a href="biodataPendeta.php">
             <i class='bx bx-edit-alt' ></i>
-            <span class="links_name">Pemecahan Kasus</span>
+            <span class="links_name">Case Solving</span>
           </a>
         </li>
         <br>
