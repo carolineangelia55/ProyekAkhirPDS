@@ -40,7 +40,7 @@
         <li>
           <a href="daftarkasus.php" class="active">
             <i class='bx bx-list-ul' ></i>
-            <span class="links_name">Cases Lists</span>
+            <span class="links_name">Cases List</span>
           </a>
         </li>
         <li>
