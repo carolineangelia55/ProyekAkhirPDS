@@ -54,10 +54,26 @@
                 },
             });
         });
+        function hoverRow(id) {
+            document.getElementById("Angka"+id).style.color = 'white';
+            document.getElementById("Nama"+id).style.color = 'white';
+            document.getElementById("Nama"+id).style.letterSpacing = '3px';
+            document.getElementById("Tgl"+id).style.color = 'white';
+        }
+        function unhoverRow(id) {
+            document.getElementById("Angka"+id).style.color = 'black';
+            document.getElementById("Nama"+id).style.color = 'black';
+            document.getElementById("Nama"+id).style.letterSpacing = '0px';
+            document.getElementById("Tgl"+id).style.color = 'black';
+        }
     </script>
     <style>
         .nav-links {
             margin-left:-32px;
+        }
+        tbody tr:hover, .data:hover {
+            background-color: #5a0303;
+            /* color:white !important;  */
         }
     </style>
 </head>
@@ -107,7 +123,7 @@
         <li>
           <a href="biodataPendeta.php">
             <i class='bx bx-edit-alt' ></i>
-            <span class="links_name">Case Solving</span>
+            <span class="links_name">Case-Solving Data</span>
           </a>
         </li>
         <br>
@@ -146,11 +162,12 @@
                 <tbody id="isiTabel">
                     <?php $i = 1; 
                       foreach ($cursor as $data) {
+                        $temp = $i;
                     ?>
-                    <tr>
-                        <td><?= $i++; ?></td>
-                        <td><?php echo $data->OFFENSE;?> at <?php echo $data->BLOCK;?></td>
-                        <td><?php echo $data->REPORT_DAT;?></td>
+                    <tr onmouseover='hoverRow("<?php echo $temp ?>")' onmouseout='unhoverRow("<?php echo $temp ?>")' onclick="window.location.href='kasus.php?id=<?php echo $data->_id;?>'">
+                        <td id="Angka<?php echo $temp; ?>"><?= $i++; ?></td>
+                        <td id="Nama<?php echo $temp; ?>"><?php echo $data->OFFENSE;?> at <?php echo $data->BLOCK;?></td>
+                        <td id="Tgl<?php echo $temp; ?>"><?php echo $data->REPORT_DAT;?></td>
                     </tr>
                     <?php } ?>
                 </tbody>

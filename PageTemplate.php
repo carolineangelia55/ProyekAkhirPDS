@@ -38,7 +38,7 @@
           </a>
         </li>
         <li>
-          <a href="daftarkasus.php" class="active">
+          <a href="daftarkasus.php">
             <i class='bx bx-list-ul' ></i>
             <span class="links_name">Cases List</span>
           </a>
@@ -64,7 +64,7 @@
         <li>
           <a href="biodataPendeta.php">
             <i class='bx bx-edit-alt' ></i>
-            <span class="links_name">Case Solving</span>
+            <span class="links_name">Case-Solving Data</span>
           </a>
         </li>
         <br>
