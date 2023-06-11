@@ -1,13 +1,16 @@
 <?php
-    use MongoDB\BSON\ObjectID;
-    $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
-    $filter = [];
-    $options = [
-        'limit' => 500
-    ];
-    $query = new MongoDB\Driver\Query($filter, $options);
-    $cursor = $manager->executeQuery("pds.kasus", $query);
-
+  require_once "php/connect.php";
+  use MongoDB\BSON\ObjectID;
+  $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+  $filter = [];
+  $options = [
+      'limit' => 500
+  ];
+  $query = new MongoDB\Driver\Query($filter, $options);
+  $cursor = $manager->executeQuery("pds.kasus", $query);
+  $sql = "SELECT * FROM jenis_kejahatan";
+  $stmt = $conn->query($sql);
+  $jenis = $stmt->fetchAll(); 
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -15,7 +18,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Cases List</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.all.min.js"></script>
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.min.css'>
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
@@ -139,7 +142,7 @@
     <nav>
       <div class="sidebar-button">
         <i class='bx bx-menu sidebarBtn'></i>
-        <span class="dashboard">Home</span>
+        <span class="dashboard">Cases List</span>
       </div>
 
       <div class="profile-details" style="padding:10px; position:relative;">
@@ -166,8 +169,8 @@
                     ?>
                     <tr onmouseover='hoverRow("<?php echo $temp ?>")' onmouseout='unhoverRow("<?php echo $temp ?>")' onclick="window.location.href='kasus.php?id=<?php echo $data->_id;?>'">
                         <td id="Angka<?php echo $temp; ?>"><?= $i++; ?></td>
-                        <td id="Nama<?php echo $temp; ?>"><?php echo $data->OFFENSE;?> at <?php echo $data->BLOCK;?></td>
-                        <td id="Tgl<?php echo $temp; ?>"><?php echo $data->REPORT_DAT;?></td>
+                        <td id="Nama<?php echo $temp; ?>"><?php echo $jenis[$data->OFFENSE-1]['nama'];?> at <?php echo $data->BLOCK;?></td>
+                        <td id="Tgl<?php echo $temp; ?>"><?php echo $data->REPORT_DATE;?></td>
                     </tr>
                     <?php } ?>
                 </tbody>
