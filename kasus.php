@@ -1,14 +1,20 @@
 <?php
     require_once "php/connect.php";
+    session_destroy();
+    // $_SESSION['user']=5;
     use MongoDB\BSON\ObjectID;
     $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
     $documentId = new MongoDB\BSON\ObjectId($_GET['id']);
     $filter = ['_id' => $documentId];
     $options = [
-        'limit' => 500
+        'limit' => 500,
+        'sort' => ['tanggal' => -1]
     ];
     $query = new MongoDB\Driver\Query($filter, $options);
     $cursor = $manager->executeQuery("pds.kasus", $query);
+    $filter = ['artikel' => $documentId];
+    $query2 = new MongoDB\Driver\Query($filter, $options);
+    $komen = $manager->executeQuery("pds.komentar", $query2);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -42,7 +48,7 @@
           margin-bottom:20px;
           border: 1px black solid;
           box-shadow:10px 10px black;
-
+          background-color:	rgb(255,250,250,0.5);
         }
         .container {
           padding-right:50px;
@@ -58,6 +64,72 @@
         @keyframes movingArrow {
           0% {color: black;}
           50% {color: #A9A9A9;}
+        }
+        .speech-bubble, .me-bubble {    
+            border-radius: 2px;
+            color: #fff;
+            margin: 1em 0 3em;
+            padding: 15px;
+            position: relative;
+            border: solid 2px #000;
+            color: #000;
+            width:75%;
+            border-radius:20px;
+        }
+        .speech-bubble {
+          background-color:white;
+        }
+        .me-bubble {
+          background-color:rgb(30, 30, 47);
+          color: white;
+          margin-left: auto; 
+          margin-right: 0;
+        }
+        .speech-bubble:after {
+          
+        }
+        .speech-bubble:after, .speech-bubble:before {
+          left: 10%;
+        }
+        .me-bubble:after, .me-bubble:before {
+          left: 90%;
+        }       
+        .speech-bubble:after, .speech-bubble:before , .me-bubble:after, .me-bubble:before{
+            top: 100%; 
+            border: solid transparent;
+            content: " ";
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+        .speech-bubble:after, .me-bubble:after {
+            border-color: rgba(255, 255, 255, 0);
+            /* border-top-color: #EEE2DE; */
+            border-width: 20px 0px 0px 20px; 
+            margin-left: -20px;
+        } 
+        .speech-bubble:after {
+          border-top-color: white;
+        }
+        .me-bubble:after {
+          border-top-color: rgb(30, 30, 47);
+        }
+        .speech-bubble:before, .me-bubble:before {
+            border-color: rgba(0, 0, 0, 0);
+            border-top-color: #000;
+            border-width: 27px 0px 0px 27px;
+            margin-left: -24px;
+        }
+        .tags {
+          border: 1px solid black;
+          padding: 2px 10px;
+          border-radius: 10px;
+          font-size:80%;
+        }
+        textarea {
+          padding:20px;
+          border-radius:20px;
         }
     </style>
     <script>
@@ -196,8 +268,49 @@
           </div>
         </div>
         <hr><hr>
-        teshsjfd
+        <?php foreach ($komen as $data) { 
+          $sql = "SELECT * FROM user WHERE iduser = ".$data->user; 
+          $stmt = $conn->query($sql);
+          $user = $stmt->fetch(); 
+          $check = True;
+          if (isset($_SESSION['user'])) {
+            if ($data->user == $_SESSION['user']) {?>
+              <h3 style="text-align:right">You (<?php echo $user['nama']?>)</h3>
+              <p style="font-size:80%; margin-top:-5px; margin-bottom:-5px; text-align:right">(<?php echo $data->tanggal?>)</p>
+              <div class="me-bubble"><?php echo $data->komentar?>
+              <br><br>
+              <?php $tags = $data->tags;
+              foreach ($tags as $t) { ?>
+              <span class="tags" style="border:1px solid white"><i class='bx bx-purchase-tag'></i> <?php echo $t?></span>
+              <?php } ?>
+              </div>
+            <?php $check = False; }} 
+            if ($check) { ?>
+              <h3><?php echo $user['nama']?></h3>
+              <p style="font-size:80%; margin-top:-5px; margin-bottom:-5px;">(<?php echo $data->tanggal?>)</p>
+              <div class="speech-bubble"><?php echo $data->komentar?>
+                <br><br>
+                <?php $tags = $data->tags;
+                foreach ($tags as $t) { ?>
+                <span class="tags"><i class='bx bx-purchase-tag'></i> <?php echo $t?></span>
+                <?php } ?>
+              </div>
+            <?php } ?>
+        <?php } ?>
+        <?php
+          if (isset($_SESSION['user'])) {
+            $sql = "SELECT * FROM user WHERE iduser = ".$_SESSION['user'];
+            $stmt = $conn->query($sql);
+            $user = $stmt->fetch();
+            echo "<br><h6 style='margin-left:10px;'>Nama: ".$user['nama'].'</h6>';
+            echo "<h6 style='margin-left:10px;'>Email: ".$user['email'].' (not shared)</h6>';
+            echo "<textarea rows='10' cols='120' placeholder='Write your comment here..'></textarea>";
+          } else {
+            echo "<hr><h5 style='margin-left:20px;'><i class='bx bx-comment-dots'></i> <a href='tes.php' style='color:blue'>Log in</a> untuk menambahkan komentar</h5>";
+          }
+        ?>
         </div>
+        <br>
     </section>
     </div>
 
