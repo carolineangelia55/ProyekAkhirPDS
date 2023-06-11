@@ -1,20 +1,26 @@
 <?php
     require_once "php/connect.php";
-    session_destroy();
-    // $_SESSION['user']=5;
+    // session_destroy();
+    $_SESSION['user']=5;
     use MongoDB\BSON\ObjectID;
     $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
     $documentId = new MongoDB\BSON\ObjectId($_GET['id']);
     $filter = ['_id' => $documentId];
-    $options = [
-        'limit' => 500,
-        'sort' => ['tanggal' => -1]
-    ];
+    $options = [];
     $query = new MongoDB\Driver\Query($filter, $options);
     $cursor = $manager->executeQuery("pds.kasus", $query);
     $filter = ['artikel' => $documentId];
+    $options = [
+      'sort' => ['tanggal' => -1],
+      'limit' => 10
+    ];
     $query2 = new MongoDB\Driver\Query($filter, $options);
     $komen = $manager->executeQuery("pds.komentar", $query2);
+    $resultArray = [];
+    foreach ($komen as $document) {
+        $resultArray[] = $document;
+    }
+    $resultArray = array_reverse($resultArray);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,6 +41,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@900&display=swap" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <style>
         h3, h6 {
           font-family: 'Inconsolata', monospace;
@@ -131,6 +138,18 @@
           padding:20px;
           border-radius:20px;
         }
+        .sendButton {
+          background-color:transparent;
+          border:1px solid black;
+          padding: 10px 30px;
+          border-radius:10px;
+          size:150%;
+          float:right;
+        }
+        .sendButton:hover {
+          background-color:black;
+          color:white;
+        }
     </style>
     <script>
       isi = "";
@@ -139,6 +158,23 @@
       }
       function tutupArrow() {
         document.getElementById('isiArrow').innerHTML = "<i class='bx bx-chevrons-down' onclick='klikArrow()'></i>";
+      }
+      function insertNewComment() {
+        komen = document.getElementById('komentar').value;
+        id = '<?php echo $_GET['id']?>';
+        $.ajax({
+            url: 'php/insertNewComment.php',
+            type: 'post',
+            data: {
+                komentar: komen,
+                artikel: id
+            },
+            success: function(result) {
+                document.getElementById('komentarHalaman').innerHTML = result;
+                document.getElementById('komentar').value = "";
+
+            }  
+        });
       }
     </script>
 </head>
@@ -268,43 +304,49 @@
           </div>
         </div>
         <hr><hr>
-        <?php foreach ($komen as $data) { 
+        <div id="komentarHalaman">
+        <?php foreach ($resultArray as $data) { 
           $sql = "SELECT * FROM user WHERE iduser = ".$data->user; 
           $stmt = $conn->query($sql);
           $user = $stmt->fetch(); 
           $check = True;
+          $komen = str_replace(array("\n"), array("<br>"), $data->komentar);
           if (isset($_SESSION['user'])) {
             if ($data->user == $_SESSION['user']) {?>
               <h3 style="text-align:right">You (<?php echo $user['nama']?>)</h3>
               <p style="font-size:80%; margin-top:-5px; margin-bottom:-5px; text-align:right">(<?php echo $data->tanggal?>)</p>
-              <div class="me-bubble"><?php echo $data->komentar?>
+              <div class="me-bubble"><?php echo $komen?>
               <br><br>
               <?php $tags = $data->tags;
               foreach ($tags as $t) { ?>
               <span class="tags" style="border:1px solid white"><i class='bx bx-purchase-tag'></i> <?php echo $t?></span>
               <?php } ?>
               </div>
-            <?php $check = False; }} 
-            if ($check) { ?>
-              <h3><?php echo $user['nama']?></h3>
-              <p style="font-size:80%; margin-top:-5px; margin-bottom:-5px;">(<?php echo $data->tanggal?>)</p>
-              <div class="speech-bubble"><?php echo $data->komentar?>
-                <br><br>
-                <?php $tags = $data->tags;
-                foreach ($tags as $t) { ?>
-                <span class="tags"><i class='bx bx-purchase-tag'></i> <?php echo $t?></span>
-                <?php } ?>
-              </div>
-            <?php } ?>
+            <?php $check = False; 
+            }
+          } 
+          if ($check) { ?>
+            <h3><?php echo $user['nama']?></h3>
+            <p style="font-size:80%; margin-top:-5px; margin-bottom:-5px;">(<?php echo $data->tanggal?>)</p>
+            <div class="speech-bubble"><?php echo $komen?>
+              <br><br>
+              <?php $tags = $data->tags;
+              foreach ($tags as $t) { ?>
+              <span class="tags"><i class='bx bx-purchase-tag'></i> <?php echo $t?></span>
+              <?php } ?>
+            </div>
+          <?php } ?>
         <?php } ?>
+        </div>
         <?php
           if (isset($_SESSION['user'])) {
             $sql = "SELECT * FROM user WHERE iduser = ".$_SESSION['user'];
             $stmt = $conn->query($sql);
             $user = $stmt->fetch();
-            echo "<br><h6 style='margin-left:10px;'>Nama: ".$user['nama'].'</h6>';
+            echo "<hr><h6 style='margin-left:10px;'>Nama: ".$user['nama'].'</h6>';
             echo "<h6 style='margin-left:10px;'>Email: ".$user['email'].' (not shared)</h6>';
-            echo "<textarea rows='10' cols='120' placeholder='Write your comment here..'></textarea>";
+            echo "<textarea id='komentar' rows='10' style='width:100%' placeholder='Write your comment here...'></textarea>
+            <button class='sendButton' onclick='insertNewComment()'>Send</button><br><br><br>";
           } else {
             echo "<hr><h5 style='margin-left:20px;'><i class='bx bx-comment-dots'></i> <a href='tes.php' style='color:blue'>Log in</a> untuk menambahkan komentar</h5>";
           }
