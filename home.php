@@ -1,10 +1,17 @@
 <?php
+    require_once 'koneksi.php';
+    session_start();
+    if(!isset($_SESSION['email'])){
+      header("location: login.php");
+      exit;
+    }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
-    <title>Admin Home</title>
+    <title>Home</title>
 
     <meta charset="UTF-8">
     <link rel="stylesheet" href="style.css">
@@ -134,7 +141,7 @@
         </li>
         <br>
         <li class="log_out">
-          <a href="logoutAdmin.php">
+          <a href="logout.php">
             <i class='bx bx-log-out'></i>
             <span class="links_name">Log out</span>
           </a>
@@ -150,7 +157,7 @@
 
       <div class="profile-details" style="padding:10px; position:relative;">
       <i class='bx bx-user-circle' style="color:white; margin-right:5px;"></i>
-        NAMA
+      <?php echo $_SESSION['nama'];?>
         <i class='bx bx-chevron-down' style="color:white; position:absolute; right:10px;"></i>
       </div>
     </nav>
