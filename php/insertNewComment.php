@@ -4,14 +4,19 @@ use MongoDB\BSON\ObjectID;
 // MongoDB connection
 $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
 $documentId = new MongoDB\BSON\ObjectId($_POST['artikel']);
-
+$tags = [];
+if (isset($_POST['tags'])) {
+  if (count($_POST['tags'])) {
+    $tags = $_POST['tags'];
+  }
+} 
 // Data to be inserted
 $data = array(
     'user' => $_SESSION['user'],
     'komentar' => $_POST['komentar'],
-    'tanggal' => date("Y-m-d h:i:s"),
+    'tanggal' => date("Y-m-d H:i:s"),
     'artikel' => $documentId,
-    'tags' => ['Need Validation']
+    'tags' => $tags
 );
 
 // Collection and insert options
@@ -30,7 +35,7 @@ $result = $manager->executeBulkWrite("pds.".$collectionName, $bulk, $options);
 $filter = ['artikel' => $documentId];
 $options = [
   'sort' => ['tanggal' => -1],
-  'limit' => 10
+  'limit' => $_SESSION['jumlahBatas']
 ];
 $query2 = new MongoDB\Driver\Query($filter, $options);
 $komen = $manager->executeQuery("pds.komentar", $query2);
@@ -38,7 +43,7 @@ $resultArray = [];
 foreach ($komen as $document) {
     $resultArray[] = $document;
 }
-$resultArray = array_reverse($resultArray);
+// $resultArray = array_reverse($resultArray);
 
 $isi = '';
 foreach ($resultArray as $data) { 
