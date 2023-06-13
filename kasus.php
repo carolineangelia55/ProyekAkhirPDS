@@ -1,13 +1,4 @@
 <?php
-    require_once 'koneksi.php';
-    session_start();
-    if(!isset($_SESSION['email'])){
-      header("location: login.php");
-      exit;
-    }
-?>
-
-<?php
     require_once "php/connect.php";
     // session_destroy();
     $_SESSION['user']=5;

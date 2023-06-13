@@ -142,7 +142,7 @@
           </a>
         </li>
         <li>
-          <a href="#">
+          <a href="addKasus.php">
             <i class='bx bx-folder-plus'></i>
             <span class="links_name">Add New Case</span>
           </a>
