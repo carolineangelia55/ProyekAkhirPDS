@@ -195,7 +195,7 @@
 
       <div class="profile-details" style="padding:10px; position:relative;">
       <i class='bx bx-user-circle' style="color:white; margin-right:5px;"></i>
-        NAMA
+      <?php echo $_SESSION['nama'];?>
         <i class='bx bx-chevron-down' style="color:white; position:absolute; right:10px;"></i>
       </div>
     </nav>
