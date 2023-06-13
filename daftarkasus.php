@@ -2,12 +2,60 @@
   require_once "php/connect.php";
   use MongoDB\BSON\ObjectID;
   $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
-  $filter = [];
-  $options = [
-      'limit' => 500
+  $week_start = date("Y-m-d", strtotime('monday this week'));
+  $week_end = date("Y-m-d", strtotime('monday next week'));
+  $pipeline = [
+    [
+      '$lookup' => [
+        'from' => 'komentar',
+        'localField' => '_id',
+        'foreignField' => 'artikel',
+        'as' => 'collection2Data'
+      ]
+    ],
+    [
+      '$addFields' => [
+        'collection2Count' => ['$size' => '$collection2Data']
+      ]
+    ],
+    [
+      '$match' => [
+        '$or' => [
+            ['collection2Data' => []],
+            [
+                'collection2Data' => [
+                    '$elemMatch' => [
+                        'tanggal' => ['$gte' => 10],
+                        'field3' => ['$lte' => 20]
+                    ]
+                ]
+            ]
+        ]
+      ]
+    ],
+    [
+      '$sort' => [
+        'collection2Count' => -1
+      ]
+    ],
+    [
+      '$limit' => 500
+    ]
   ];
-  $query = new MongoDB\Driver\Query($filter, $options);
-  $cursor = $manager->executeQuery("pds.kasus", $query);
+
+  $options = [
+    'cursor' => new stdClass(),
+    'allowDiskUse' => true
+  ];
+
+  $aggregateCommand = new MongoDB\Driver\Command([
+    'aggregate' => 'kasus',
+    'pipeline' => $pipeline,
+    'cursor' => $options['cursor'],
+    'allowDiskUse' => $options['allowDiskUse']
+  ]);
+
+  $cursor = $manager->executeCommand('pds', $aggregateCommand);
   $sql = "SELECT * FROM jenis_kejahatan";
   $stmt = $conn->query($sql);
   $jenis = $stmt->fetchAll(); 

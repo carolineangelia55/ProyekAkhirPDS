@@ -29,54 +29,53 @@ $options = array(
 $bulk = new MongoDB\Driver\BulkWrite();
 $bulk->insert($data);
 
-// Execute the insert command
+$jumlahTags = [];
 $result = $manager->executeBulkWrite("pds.".$collectionName, $bulk, $options);
-
 $filter = ['artikel' => $documentId];
-$options = [
-  'sort' => ['tanggal' => -1],
-  'limit' => $_SESSION['jumlahBatas']
-];
+$options = [];
 $query2 = new MongoDB\Driver\Query($filter, $options);
-$komen = $manager->executeQuery("pds.komentar", $query2);
-$resultArray = [];
-foreach ($komen as $document) {
-    $resultArray[] = $document;
+$isi = $manager->executeQuery("pds.komentar", $query2);
+$data = [];
+foreach ($isi as $document) {
+  $data[] = $document;
 }
-// $resultArray = array_reverse($resultArray);
-
-$isi = '';
-foreach ($resultArray as $data) { 
-    $sql = "SELECT * FROM user WHERE iduser = ".$data->user; 
-    $stmt = $conn->query($sql);
-    $user = $stmt->fetch(); 
-    $check = True;
-    $komen = str_replace(array("\n"), array("<br>"), $data->komentar);
-    if (isset($_SESSION['user'])) {
-      if ($data->user == $_SESSION['user']) {
-        $isi .= '<h3 style="text-align:right">You ('.$user['nama'].')</h3>
-        <p style="font-size:80%; margin-top:-5px; margin-bottom:-5px; text-align:right">('.$data->tanggal.')</p>
-        <div class="me-bubble">'.$komen.'
-        <br><br>';
-        $tags = $data->tags;
-        foreach ($tags as $t) { 
-            $isi .= '<span class="tags" style="border:1px solid white"><i class="bx bx-purchase-tag"></i>'.$t.'</span>';
-        }
-        $isi .= '</div>';
-        $check = False; 
-      }
-    } 
-    if ($check) {
-      $isi .= '<h3>'.$user['nama'].'</h3>
-      <p style="font-size:80%; margin-top:-5px; margin-bottom:-5px;">('.$data->tanggal.')</p>
-      <div class="speech-bubble">'.$komen.'
-      <br><br>';
-      $tags = $data->tags;
-      foreach ($tags as $t) {
-        $isi .= '<span class="tags"><i class="bx bx-purchase-tag"></i>'.$t.'</span>';
-      }
-      $isi .= '</div>';
+foreach ($data as $d) {
+  foreach ($d->tags as $tag) {
+    if (!isset($jumlahTags[$tag])) {
+      $jumlahTags[$tag] = 0;
     }
-} 
-echo $isi;
+    $jumlahTags[$tag] += 1;  
+  }
+}
+$hasil = [];
+arsort($jumlahTags);
+$count = 0;
+foreach ($jumlahTags as $key=>$value) {
+  array_push($hasil, $key);
+  if ($count > 1) {
+    break;
+  }
+  $count++;
+}
+// Specify the filter to match the document(s) you want to update
+$filter = ['_id' => $documentId];
+
+// Specify the update operation using the $set operator and $exists operator
+$update = [
+    '$set' => [
+        'tags' => $hasil
+    ]
+];
+
+// Specify any additional options, if needed
+$options = ['multi' => false];
+
+// Create an instance of the MongoDB\Driver\BulkWrite class
+$bulk = new MongoDB\Driver\BulkWrite;
+
+// Add the update operation to the BulkWrite
+$bulk->update($filter, $update, $options);
+
+// Execute the BulkWrite using the Manager
+$result = $manager->executeBulkWrite("pds.kasus", $bulk);
 ?>

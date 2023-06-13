@@ -10,7 +10,6 @@
     $query = new MongoDB\Driver\Query($filter, $options);
     $cursor = $manager->executeQuery("pds.kasus", $query);
     $filter = ['artikel' => $documentId];
-    $_SESSION['jumlahBatas'] = 10;
     $options = [
       'sort' => ['tanggal' => -1],
       'limit' => $_SESSION['jumlahBatas']
@@ -29,7 +28,6 @@
     foreach ($isi as $document) {
       $jumlahIsi[] = $document;
     }
-    // $resultArray = array_reverse($resultArray);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -172,7 +170,14 @@
           margin-right:10px;
           float: right;
         }
-        .sendButton:hover, .buttonTag:hover, .buttonSort:hover {
+        #buttonFilter {
+          background-color:transparent;
+          border: 1px solid black;
+          border-radius:10px;
+          padding:2px 5px;
+          padding-top:5px;
+        }
+        .sendButton:hover, .buttonTag:hover, .buttonSort:hover, #buttonFilter:hover{
           background-color:black;
           color:white;
         }
@@ -180,7 +185,6 @@
           color:blue;
         }
         .h5AddMore:hover {
-          text-decoration: underline;
           letter-spacing: 3px;
         }
         .inputTag {
@@ -190,10 +194,19 @@
           width: 20%;
           margin-left:5px;
         }
+        .ui-autocomplete {
+          z-index:2147483647;
+        }
+        select {
+          border-radius:5px;
+          padding:2px 5px;
+        }
     </style>
     <script>
       isi = "";
       tags = [];
+      sort = 1;
+      tags2 = [];
       jumlahBatas = 10;
       $(document).ready(function(){
         var availableTags = [
@@ -213,6 +226,9 @@
         $("#tags").autocomplete({
           source: availableTags
         });
+        $("#tags2").autocomplete({
+          source: availableTags
+        });
         var input = document.getElementById("tags");
         input.addEventListener("keypress", function(event) {
           if (event.key === "Enter") {
@@ -220,12 +236,20 @@
             document.getElementById("buttonTag").click();
           }
         });
+        var input2 = document.getElementById("tags2");
+        input2.addEventListener("keypress", function(event) {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            document.getElementById("buttonFilter").click();
+          }
+        });
         $('body').tooltip({
             selector: "[data-tooltip=tooltip]",
             container: "body"
         });
-        function klikFilter() {
-        }
+        $('select').on('change', function() {
+            sort = $(this).find(":checked").val();
+        });
       });
       function klikArrow() {
         document.getElementById('isiArrow').innerHTML = isi + "<i class='bx bx-chevrons-up' onclick='tutupArrow()'></i>";
@@ -235,54 +259,130 @@
       }
       function insertNewComment() {
         komen = document.getElementById('komentar').value;
-        id = '<?php echo $_GET['id']?>';
-        $.ajax({
-            url: 'php/insertNewComment.php',
-            type: 'post',
-            data: {
-                komentar: komen,
-                artikel: id,
-                tags: tags
-            },
-            success: function(result) {
-                document.getElementById('komentarHalaman').innerHTML = result;
-                document.getElementById('komentar').value = "";
+        if (komen!="") {
+          id = '<?php echo $_GET['id']?>';
+          $.ajax({
+              url: 'php/insertNewComment.php',
+              type: 'post',
+              data: {
+                  komentar: komen,
+                  artikel: id,
+                  tags: tags
+              }, success: function(result) {
                 tags = [];
+                document.getElementById('komentar').value = "";
                 document.getElementById('daftarTags').innerHTML = "";
-            }  
-        });
+                klikFilter();
+              }  
+          });
+        } else {
+          alert("Komentar tidak boleh kosong");
+        }
       }
       function tambahView() {
-        id = '<?php echo $_GET['id']?>';
         jumlahBatas += 10;
-        jumlahKomentar = <?php echo count($jumlahIsi); ?>;
-        $.ajax({
-            url: 'php/addJumlahBatas.php',
-            type: 'post',
-            data: {
-                artikel: id
-            },
-            success: function(result) {
-                document.getElementById('komentarHalaman').innerHTML = result;
-                if (jumlahKomentar > jumlahBatas) {
-                  document.getElementById('viewMore').innerHTML = "<h5 class='h5AddMore' style='text-align:center;' onclick='tambahView(); color:blue'>See More Comments</h5>";
-                } else {
-                  document.getElementById('viewMore').innerHTML = '';
-                }
-            }  
-        });
+        klikFilter();
       }
       function addTags() {
         tag = document.getElementById("tags").value;
-        if (tag != "") {
+        cek = true;
+        for (let i = 0; i < tags.length; i++) {
+          if (tags[i]==tag) {
+            cek = false;
+            alert("Tag dengan nama yang sama sudah ditambahkan")
+          }
+        }
+        if (tag != "" && cek) {
           tags.push(tag);
-          document.getElementById("tags").value = "";
           var isitag = "";
           for (let i = 0; i < tags.length; i++) {
-            isitag += '<span class="tags" style="border:1px solid black"><i class="bx bx-purchase-tag"></i>'+tags[i]+'</span>';
+            isitag += '<span class="tags" style="border:1px solid black"><i class="bx bx-purchase-tag"></i>'+tags[i]+` <span onclick='deleteTag("`+tags[i]+`")'>&times;</span></span>`;
           }
           document.getElementById('daftarTags').innerHTML = isitag;
         }
+        document.getElementById("tags").value = "";
+      }
+      function deleteTag(tag) {
+        for (let i = 0; i < tags.length; i++) {
+          if (tags[i]==tag) {
+            tags.splice(i, 1);
+          }
+        }
+        var isitag = "";
+        for (let i = 0; i < tags.length; i++) {
+          isitag += '<span class="tags" style="border:1px solid black"><i class="bx bx-purchase-tag"></i>'+tags[i]+` <span onclick='deleteTag("`+tags[i]+`")'>&times;</span></span>`;
+        }
+        document.getElementById('daftarTags').innerHTML = isitag;
+        document.getElementById("tags").value = "";
+      }
+      function addTags2() {
+        tag = document.getElementById("tags2").value;
+        cek = true;
+        for (let i = 0; i < tags2.length; i++) {
+          if (tags2[i]==tag) {
+            cek = false;
+            alert("Tag dengan nama yang sama sudah ditambahkan")
+          }
+        }
+        if (tag != "" && cek) {
+          tags2.push(tag);
+          var isitag = "";
+          for (let i = 0; i < tags2.length; i++) {
+            isitag += '<span class="tags" style="border:1px solid black"><i class="bx bx-purchase-tag"></i>'+tags2[i]+` <span onclick='deleteTag2("`+tags2[i]+`")'>&times;</span></span>`;
+          }
+          document.getElementById('daftarTags2').innerHTML = isitag;
+        }
+        document.getElementById("tags2").value = "";
+      }
+      function deleteTag2(tag) {
+        for (let i = 0; i < tags2.length; i++) {
+          if (tags2[i]==tag) {
+            tags2.splice(i, 1);
+          }
+        }
+        var isitag = "";
+        for (let i = 0; i < tags2.length; i++) {
+          isitag += '<span class="tags" style="border:1px solid black"><i class="bx bx-purchase-tag"></i>'+tags2[i]+` <span onclick='deleteTag2("`+tags2[i]+`")'>&times;</span></span>`;
+        }
+        document.getElementById('daftarTags2').innerHTML = isitag;
+        document.getElementById("tags2").value = "";
+      }
+      function klikFilter() {
+        id = '<?php echo $_GET['id']?>';
+        $.ajax({
+            url: 'php/filterComment.php',
+            type: 'post',
+            data: {
+                artikel: id,
+                sort: sort,
+                startDate: document.getElementById("startDate").value,
+                endDate: document.getElementById("endDate").value,
+                tags: tags2,
+                jumlahBatas: jumlahBatas
+            },
+            success: function(result) {
+              document.getElementById('komentarHalaman').innerHTML = result;
+            }  
+        });
+        $.ajax({
+            url: 'php/countComment.php',
+            type: 'post',
+            data: {
+                artikel: id,
+                sort: sort,
+                startDate: document.getElementById("startDate").value,
+                endDate: document.getElementById("endDate").value,
+                tags: tags2,
+                jumlahBatas: jumlahBatas
+            },
+            success: function(result) {
+              if (result > jumlahBatas) {
+                document.getElementById('viewMore').innerHTML = "<h5 class='h5AddMore' style='text-align:center;' onclick='tambahView(); color:blue'>See More Comments</h5>";
+              } else {
+                document.getElementById('viewMore').innerHTML = '';
+              }
+            }  
+        });
       }
     </script>
 </head>
@@ -301,12 +401,24 @@
       
       <!-- Modal body -->
       <div class="modal-body">
-        Modal body..
+        <label for="sort" style='margin-right:10px'>Sort: </label>
+        <select name="cars" id="cars">
+          <option id="sort1" value="1" selected>Newest to Oldest</option>
+          <option id="sort2" value="2">Oldest to Newest</option>
+        </select>
+        <br>
+        <label for="date" style='margin-right:10px'>Date: </label>
+        <input type='date' class='inputTag' style="width:30%" id='startDate'> - 
+        <input type='date' class='inputTag' style="width:30%" id='endDate'>
+        <br>
+        <label for='tags2' style='margin-right:10px'>Tags: </label><span id='daftarTags2'></span>
+        <input type='text' class='inputTag' id='tags2'>
+        <button onclick='addTags2()' id='buttonFilter'>+</button>
       </div>
       
       <!-- Modal footer -->
       <div class="modal-footer">
-        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+        <button class='sendButton' onclick='klikFilter()' data-dismiss="modal">Submit</button>
       </div>
       
     </div>
@@ -399,7 +511,7 @@
             <h3 style="text-align:center; margin-bottom:30px"> Case Detail </h3>
         <?php $count = 0; 
         foreach ($data as $key=>$value) {
-          if ($key != "_id") {
+          if ($key != "_id" and $key != "tags") {
             if ($key == "OFFENSE") {
               $sql = "SELECT * FROM jenis_kejahatan WHERE idjenis = ".$value;
               $stmt = $conn->query($sql);
@@ -436,6 +548,12 @@
         <?php } } } ?>
           </div>
         </div>
+        <br>
+        <span style="margin-right:5px; font-weight: bold;">Tags: </span>
+        <?php if (isset($data->tags)) {
+        foreach ($data->tags as $val) { ?>
+          <span class="tags" style="border:1px solid black; font-size: 100%;"><i class="bx bx-purchase-tag"></i><?php echo $val ?></span>
+        <?php } } ?>
         <hr><hr>
         <?php
           if (isset($_SESSION['user'])) {
@@ -445,11 +563,12 @@
             echo '<button class="buttonSort" data-tooltip="tooltip" title="Filter & Sort" data-toggle="modal" data-target="#myModal"><i class="bx bx-filter-alt"></i></button>';
             echo "<h6 style='margin-left:10px;'>Nama: ".$user['nama'].'</h6>';
             echo "<h6 style='margin-left:10px;'>Email: ".$user['email'].' (not shared)</h6>';
-            echo "<textarea id='komentar' rows='5' style='width:100%' placeholder='Write your comment here...'></textarea>";
+            echo "<textarea id='komentar' rows='5' style='width:100%' placeholder='Write your comment here...' required></textarea>";
             echo "<label for='tags' style='margin-right:10px'>Tags: </label><span id='daftarTags'></span><input type='text' class='inputTag' id='tags'> <button class='buttonTag' onclick='addTags()' id='buttonTag'><i class='bx bx-plus-circle'></i>Add New Tag</button>";
             echo "<button class='sendButton' onclick='insertNewComment()'>Send</button><br><br><br>";
           } else {
-            echo "<hr><h5 style='margin-left:20px;'><i class='bx bx-comment-dots'></i> <a href='tes.php' style='color:blue'>Log in</a> untuk menambahkan komentar</h5>";
+            echo '<button class="buttonSort" data-tooltip="tooltip" title="Filter & Sort" data-toggle="modal" data-target="#myModal"><i class="bx bx-filter-alt"></i></button>';
+            echo "<br><h5 style='margin-left:20px;'><i class='bx bx-comment-dots'></i> <a href='tes.php' style='color:blue'>Log in</a> untuk menambahkan komentar</h5>";
           }
         ?>
         <br>

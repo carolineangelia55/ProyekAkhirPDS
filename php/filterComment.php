@@ -4,20 +4,34 @@
     // MongoDB connection
     $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
     $documentId = new MongoDB\BSON\ObjectId($_POST['artikel']);
-    $_SESSION['jumlahBatas'] = $_SESSION['jumlahBatas']+10;
-    $filter = ['artikel' => $documentId];
+    $filter = [
+        'artikel' => $documentId
+    ];
+    if (isset($_POST['tags'])) {
+        $filter['tags'] = ['$all'=>$_POST['tags']];
+    }
+    if ($_POST['startDate'] != "") {
+        $filter['tanggal']['$gte'] = $_POST['startDate']; 
+    }
+    if ($_POST['endDate'] != "") {
+        $filter['tanggal']['$lte'] = $_POST['endDate']; 
+    }
+    $sort = 0;
+    if ($_POST['sort']==1) {
+        $sort = -1;
+    } else {
+        $sort = 1;
+    }
     $options = [
-      'sort' => ['tanggal' => -1],
-      'limit' => $_SESSION['jumlahBatas']
+      'sort' => ['tanggal' => $sort],
+      'limit' => $_POST['jumlahBatas']
     ];
     $query2 = new MongoDB\Driver\Query($filter, $options);
     $komen = $manager->executeQuery("pds.komentar", $query2);
     $resultArray = [];
     foreach ($komen as $document) {
         $resultArray[] = $document;
-    }
-    // $resultArray = array_reverse($resultArray);
-    
+    }    
     $isi = '';
     foreach ($resultArray as $data) { 
         $sql = "SELECT * FROM user WHERE iduser = ".$data->user; 
