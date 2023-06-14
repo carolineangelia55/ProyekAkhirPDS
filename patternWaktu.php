@@ -2,39 +2,12 @@
   require_once "php/connect.php";
   use MongoDB\BSON\ObjectID;
   $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
-  $week_start = date("Y-m-d", strtotime('monday this week'));
-  $week_end = date("Y-m-d", strtotime('monday next week'));
   $filter = [];
   $options = [
-    'limit' => 500
+      'limit' => 500
   ];
   $query = new MongoDB\Driver\Query($filter, $options);
-  $cursor = $manager->executeQuery('pds.kasus', $query);
-  $dataKasus = [];
-  foreach ($cursor as $document) {
-    $id = $document->_id;
-    $filter = [
-      'artikel' => $id,
-      'tanggal' => [
-          '$gte' => $week_start,
-          '$lte' => $week_end
-      ],
-    ];
-    $options = [];
-    $query = new MongoDB\Driver\Query($filter, $options);
-    $cursor2 = $manager->executeQuery('pds.komentar', $query);
-    $jumlah = 0;
-    foreach ($cursor2 as $data) {
-      $jumlah++;
-    }
-    $document->jumlah = $jumlah;
-    $dataKasus[] = $document;
-  }
-  usort($dataKasus, function($a, $b)
-  {
-      return $a->jumlah - $b->jumlah;
-  });
-  $dataKasus = array_reverse($dataKasus);
+  $cursor = $manager->executeQuery("pds.kasus", $query);
   $sql = "SELECT * FROM jenis_kejahatan";
   $stmt = $conn->query($sql);
   $jenis = $stmt->fetchAll(); 
@@ -45,7 +18,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cases List</title>
+    <title>Crime Pattern</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.all.min.js"></script>
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.min.css'>
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
@@ -88,13 +61,13 @@
             document.getElementById("Angka"+id).style.color = 'white';
             document.getElementById("Nama"+id).style.color = 'white';
             document.getElementById("Nama"+id).style.letterSpacing = '3px';
-            document.getElementById("Tgl"+id).style.color = 'white';
+            document.getElementById("Shift"+id).style.color = 'white';
         }
         function unhoverRow(id) {
             document.getElementById("Angka"+id).style.color = 'black';
             document.getElementById("Nama"+id).style.color = 'black';
             document.getElementById("Nama"+id).style.letterSpacing = '0px';
-            document.getElementById("Tgl"+id).style.color = 'black';
+            document.getElementById("Shift"+id).style.color = 'black';
         }
     </script>
     <style>
@@ -127,7 +100,7 @@
           </a>
         </li>
         <li>
-          <a href="daftarkasus.php" class="active">
+          <a href="daftarkasus.php">
             <i class='bx bx-list-ul' ></i>
             <span class="links_name">Cases List</span>
           </a>
@@ -145,7 +118,7 @@
           </a>
         </li>
         <li>
-          <a href="inputJadwal.php">
+          <a href="inputJadwal.php" class="active">
             <i class='bx bx-ghost' ></i>
             <span class="links_name">Find Crime Pattern</span>
           </a>
@@ -169,7 +142,7 @@
     <nav>
       <div class="sidebar-button">
         <i class='bx bx-menu sidebarBtn'></i>
-        <span class="dashboard">Cases List</span>
+        <span class="dashboard">Crime Pattern</span>
       </div>
 
       <div class="profile-details" style="padding:10px; position:relative;">
@@ -181,29 +154,43 @@
     <div class="container">
     <div class="table-responsive" style="padding-top:100px;">
         <div style="overflow-x: auto;">
+        <h3>Pattern Based on Offence</h3>
             <table id="example" class="table table-striped" style="width:100%; text-align: center;">
                 <thead>
                     <tr>
                         <th>No</th>
-                        <th>Case Name</th>
-                        <th>Report Date</th>
+                        <th>Crime Type</th>
+                        <th>Mostly at Shift</th>
                     </tr>
                 </thead>
                 <tbody id="isiTabel">
-                    <?php $i = 1; 
-                      foreach ($dataKasus as $data) {
-                        $temp = $i;
+                    <?php
+                          include 'koneksi.php'; // Using database connection file here
+                            $count = 0;
+                            $sqlcrime = 'SELECT * FROM jenis_kejahatan';
+                            $stmtcrime = $sambung->query($sql);
+                          while($data = mysqli_fetch_array($stmtcrime))
+                          { $count = $count + 1;
                     ?>
-                    <tr onmouseover='hoverRow("<?php echo $temp ?>")' onmouseout='unhoverRow("<?php echo $temp ?>")' onclick="window.location.href='kasus.php?id=<?php echo $data->_id;?>'">
-                        <td id="Angka<?php echo $temp; ?>"><?= $i++; ?></td>
-                        <td id="Nama<?php echo $temp; ?>"><?php echo $jenis[$data->OFFENSE-1]['nama'];?> at <?php echo $data->BLOCK;?></td>
-                        <td id="Tgl<?php echo $temp; ?>"><?php echo $data->REPORT_DATE;?></td>
-                    </tr>
+                        <tr onmouseover='hoverRow("<?php echo $count ?>")' onmouseout='unhoverRow("<?php echo $count ?>")'>
+                        <td id="Angka<?php echo $count; ?>"><?php echo $count; ?></td>
+                        <td id="Nama<?php echo $count; ?>"><?php echo $data['nama']; ?></td>
+                        <td id="Shift<?php echo $count; ?>">Day</td>  
+                        </tr>
                     <?php } ?>
                 </tbody>
             </table>
         </div>
     </div>
+    
+    <br>
+    <h3>Pattern Based on Shift</h3>
+    <p><b>DAY</b></p>
+    
+    <p><b>EVENING</b></p>
+    <p><b>MIDNIGHT</b></p>
+
+
     </div>
     </section>
 

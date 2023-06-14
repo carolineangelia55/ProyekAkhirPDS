@@ -98,13 +98,13 @@
     </div>
       <ul class="nav-links">
         <li>
-          <a href="homeAdmin.php" class="active">
+          <a href="home.php" class="active">
             <i class='bx bx-home-alt' ></i>
             <span class="links_name">Home</span>
           </a>
         </li>
         <li>
-          <a href="#">
+          <a href="addKasus.php">
             <i class='bx bx-folder-plus'></i>
             <span class="links_name">Add New Case</span>
           </a>
@@ -128,7 +128,7 @@
           </a>
         </li>
         <li>
-          <a href="inputJadwal.php">
+          <a href="patternWaktu.php">
             <i class='bx bx-ghost' ></i>
             <span class="links_name">Find Crime Pattern</span>
           </a>
