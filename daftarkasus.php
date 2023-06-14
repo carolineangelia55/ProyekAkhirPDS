@@ -145,7 +145,7 @@
           </a>
         </li>
         <li>
-          <a href="inputJadwal.php">
+          <a href="patternWaktu.php">
             <i class='bx bx-ghost' ></i>
             <span class="links_name">Find Crime Pattern</span>
           </a>

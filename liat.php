@@ -1,42 +1,39 @@
 <?php
-
-// Menggunakan MongoDB PHP Driver
-require '../vendor/autoload.php';
-
+// Mengimpor kelas-kelas yang diperlukan
 use MongoDB\Driver\Manager;
 use MongoDB\Driver\Query;
 
-// Create manager
-$manager = new Manager("mongodb://localhost:27017");
+// Mendefinisikan konfigurasi koneksi MongoDB
+$server = "mongodb://localhost:27017";
+$database = "pds";
+$collection = "kasus";
 
-// Memilih database dan koleksi
-$databaseName = "pds";
-$collectionName = "kasus";
+// Membuat objek Manager untuk koneksi MongoDB
+$manager = new Manager($server);
 
-// Membuat pipeline agregasi
-$pipeline = [
-    [
-        '$group' => [
-            '_id' => [
-                'offense' => '$offense',
-                'shift' => '$shift'
-            ],
-            'count' => ['$sum' => 1]
-        ]
-    ]
-];
+// Daftar shift yang akan dihitung
+$shifts = ['MIDNIGHT', 'DAY', 'EVENING'];
 
-// Membuat query
-$query = new Query($pipeline);
-
-// Menjalankan query
-$cursor = $manager->executeQuery("$databaseName.$collectionName", $query);
-
-// Menampilkan hasil
-foreach ($cursor as $document) {
-    $offense = $document->_id->offense;
-    $shift = $document->_id->shift;
-    $count = $document->count;
+// Melakukan perulangan untuk setiap shift
+foreach ($shifts as $shift) {
+    echo "Shift: $shift\n";
     
-    echo "Offense: $offense, Shift: $shift, Count: $count<br>";
+    // Melakukan perulangan untuk setiap offense
+    for ($offense = 1; $offense <= 9; $offense++) {
+        // Membuat objek Query untuk mencari jumlah dokumen dengan kombinasi shift dan offense
+        $query = new Query([
+            'SHIFT' => $shift,
+            'OFFENSE' => $offense
+        ]);
+        
+        // Menjalankan query dan mengambil hasil
+        $cursor = $manager->executeQuery("$database.$collection", $query);
+        $count = count(iterator_to_array($cursor));
+        
+        // Menampilkan jumlah dokumen dengan kombinasi shift dan offense
+        echo "OFFENSE = $offense: $count\n";
+    }
+    
+    echo "\n"; // Cetak baris kosong setelah setiap shift
 }
+?>

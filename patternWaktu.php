@@ -1,13 +1,19 @@
 <?php
   require_once "php/connect.php";
+
+  // Mengimpor kelas-kelas yang diperlukan
   use MongoDB\BSON\ObjectID;
-  $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
-  $filter = [];
-  $options = [
-      'limit' => 500
-  ];
-  $query = new MongoDB\Driver\Query($filter, $options);
-  $cursor = $manager->executeQuery("pds.kasus", $query);
+  use MongoDB\Driver\Manager;
+  use MongoDB\Driver\Query;
+
+  // Mendefinisikan konfigurasi koneksi MongoDB
+  $server = "mongodb://localhost:27017";
+  $database = "pds";
+  $collection = "kasus";
+
+  // Membuat objek Manager untuk koneksi MongoDB
+  $manager = new Manager($server);
+
   $sql = "SELECT * FROM jenis_kejahatan";
   $stmt = $conn->query($sql);
   $jenis = $stmt->fetchAll(); 
@@ -38,35 +44,37 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.all.min.js"></script>
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.min.css'>    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
     <script>
-        $(document).ready(function() {
-            var table = $('#example').DataTable( {
-            dom: "B<'row'<'col-sm-6'l><'col-sm-6'f>>tipr",
-                buttons: [
-                'copy','csv','excel'
-                ],
-                buttons: {
-                dom: {
-                    button:{
-                    tag: "button",
-                    className: "btn btn-outline-dark mb-3 mx-1 rounded p-2"
-                    },
-                    buttonLiner: {
-                    tag: null
-                    }
-                }
-                },
-            });
-        });
+        // $(document).ready(function() {
+        //     var table = $('#example').DataTable( {
+        //     dom: "B<'row'<'col-sm-6'l><'col-sm-6'f>>tipr",
+        //         buttons: [
+        //         'copy','csv','excel'
+        //         ],
+        //         buttons: {
+        //         dom: {
+        //             button:{
+        //             tag: "button",
+        //             className: "btn btn-outline-dark mb-3 mx-1 rounded p-2"
+        //             },
+        //             buttonLiner: {
+        //             tag: null
+        //             }
+        //         }
+        //         },
+        //     });
+        // });
         function hoverRow(id) {
             document.getElementById("Angka"+id).style.color = 'white';
             document.getElementById("Nama"+id).style.color = 'white';
             document.getElementById("Nama"+id).style.letterSpacing = '3px';
+            document.getElementById("Jumlah"+id).style.color = 'white';
             document.getElementById("Shift"+id).style.color = 'white';
         }
         function unhoverRow(id) {
             document.getElementById("Angka"+id).style.color = 'black';
             document.getElementById("Nama"+id).style.color = 'black';
             document.getElementById("Nama"+id).style.letterSpacing = '0px';
+            document.getElementById("Jumlah"+id).style.color = 'white';
             document.getElementById("Shift"+id).style.color = 'black';
         }
     </script>
@@ -74,9 +82,15 @@
         .nav-links {
             margin-left:-32px;
         }
-        tbody tr:hover, .data:hover {
-            background-color: #5a0303;
-            /* color:white !important;  */
+
+        table {
+          border-collapse: collapse;
+          width: 400px;
+        }
+
+        th, td {
+          border: 1px solid black;
+          padding: 8px;
         }
     </style>
 </head>
@@ -160,35 +174,133 @@
                     <tr>
                         <th>No</th>
                         <th>Crime Type</th>
+                        <th>Total Cases</th>
                         <th>Mostly at Shift</th>
                     </tr>
                 </thead>
-                <tbody id="isiTabel">
-                    <?php
-                          include 'koneksi.php'; // Using database connection file here
-                            $count = 0;
-                            $sqlcrime = 'SELECT * FROM jenis_kejahatan';
-                            $stmtcrime = $sambung->query($sql);
+                <tbody id="isiTabel" class="satu">
+                  <?php 
+                      // Daftar value offense yang akan dihitung
+                      $valueOffenses = range(1, 9);
+
+                      // Membuat array untuk menyimpan hasil count dan value shift terbanyak
+                      $countByOffense = [];
+                      $mostFrequentShiftByOffense = [];
+
+                      // Melakukan perulangan untuk setiap value offense
+                      $count = 0;
+                      foreach ($valueOffenses as $offense) {
+                          $count = $count + 1;
+                          // Membuat objek Query untuk mencari jumlah dokumen dengan kombinasi offense dan shift
+                          $query = new Query(['OFFENSE' => $offense]);
+
+                          // Menjalankan query dan mengambil hasil
+                          $cursor = $manager->executeQuery("$database.$collection", $query);
+                          $resultArray = iterator_to_array($cursor);
+
+                          // Menghitung jumlah offense per shift
+                          $shiftCount = array_count_values(array_column($resultArray, 'SHIFT'));
+
+                          // Mengurutkan shift berdasarkan jumlah
+                          arsort($shiftCount);
+
+                          // Mengambil shift dengan jumlah terbanyak
+                          $mostFrequentShift = array_key_first($shiftCount);
+
+                          // Menyimpan hasil count dan value shift terbanyak
+                          $countByOffense[$offense] = count($resultArray);
+                          $mostFrequentShiftByOffense[$offense] = $mostFrequentShift;
+                          // Menampilkan baris tabel untuk setiap value offense
+                          
+                          include 'koneksi.php';
+                          $sqlcrime = 'SELECT * FROM jenis_kejahatan WHERE idjenis='.$offense;
+                          $stmtcrime = $sambung->query($sqlcrime);
                           while($data = mysqli_fetch_array($stmtcrime))
-                          { $count = $count + 1;
-                    ?>
-                        <tr onmouseover='hoverRow("<?php echo $count ?>")' onmouseout='unhoverRow("<?php echo $count ?>")'>
-                        <td id="Angka<?php echo $count; ?>"><?php echo $count; ?></td>
-                        <td id="Nama<?php echo $count; ?>"><?php echo $data['nama']; ?></td>
-                        <td id="Shift<?php echo $count; ?>">Day</td>  
-                        </tr>
-                    <?php } ?>
+                          {
+
+                          echo "<tr>";
+                          echo "<td>$count</td>";
+                          echo "<td>".$data['nama']."</td>";
+                          }
+                          echo "<td>" . $countByOffense[$offense] . "</td>";
+                          echo "<td>" . $mostFrequentShiftByOffense[$offense] . "</td>";
+                          echo "</tr>";
+                      }
+                  ?>
                 </tbody>
             </table>
         </div>
     </div>
     
-    <br>
-    <h3>Pattern Based on Shift</h3>
-    <p><b>DAY</b></p>
-    
-    <p><b>EVENING</b></p>
-    <p><b>MIDNIGHT</b></p>
+    <?php
+          // Daftar shift yang akan dihitung
+          $shifts = ['MIDNIGHT', 'DAY', 'EVENING'];
+
+          // Membuat array untuk menyimpan top 3 value offense per shift
+          $topOffenses = [];
+
+          // Melakukan perulangan untuk setiap shift
+          foreach ($shifts as $shift) {
+            // Membuat objek Query untuk mencari jumlah dokumen dengan kombinasi shift dan offense
+            $query = new Query([
+              'SHIFT' => $shift
+            ]);
+
+            // Menjalankan query dan mengambil hasil
+            $cursor = $manager->executeQuery("$database.$collection", $query);
+            $resultArray = iterator_to_array($cursor);
+
+            // Menghitung jumlah offense per shift
+            $offenseCount = array_count_values(array_column($resultArray, 'OFFENSE'));
+
+            // Mengurutkan offense berdasarkan jumlah
+            arsort($offenseCount);
+
+            // Mengambil top 3 value offense
+            $topOffenses[$shift] = array_slice($offenseCount, 0, 3, true);
+          }
+
+          ?>
+
+
+        <div class="table-responsive" style="padding-top:100px;">
+            <div style="overflow-x: auto;">
+
+            <h3>Pattern Based on Shift</h3>
+
+          <h4>Top 3 Crime Types per Shift</h4>
+          <?php foreach ($shifts as $shift) : ?>
+            <h5>Shift: <?php echo $shift; ?></h5>
+            <table id="example" class="table table-striped" style="width:100%; text-align: center;">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Crime Type</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php $no = 1; foreach ($topOffenses[$shift] as $offense => $count) : ?>
+                <?php 
+                  include 'koneksi.php';
+                  $sqloff = 'SELECT * FROM jenis_kejahatan WHERE idjenis='.$offense;
+                  $stmtoff = $sambung->query($sqloff);
+                  while($data = mysqli_fetch_array($stmtoff))
+                  {
+                ?>
+                <tr>
+                  <td><?php echo $no; $no = $no + 1; ?></td>
+                  <td><?php echo $data['nama']; ?></td>
+                  <?php } ?>
+                  <td><?php echo $count; ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+            </table>
+          <?php endforeach; ?>
+
+          </div>
+          </div>
 
 
     </div>
