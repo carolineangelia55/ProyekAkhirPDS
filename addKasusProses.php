@@ -20,30 +20,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $alamat = $_POST["alamat"];
     $tanggal_kejadian = $_POST["tanggalkejadian"];
     $shift = $_POST["shift"];
-    $is_selesai = isset($_POST["tanggalselesai"]) ? true : false;
     $tanggal_selesai = $_POST["tanggalselesai"];
-    $inputJudul = $_POST["inputJudul"];
-    $inputField = $_POST["inputField"];
+    $kasusSelesai = isset($_POST["kasusSelesai"]) ? $_POST["kasusSelesai"] : "false";
 
     // Prepare the document to be inserted
     $document = [
-        'offense' => $jenis_kejahatan,
-        'block' => $alamat,
-        'report_date' => $tanggal_kejadian,
-        'shift' => $shift,
-        'is_selesai' => $is_selesai,
-        'tanggal_selesai' => $tanggal_selesai,
-        'informasi_lainnya' => []
+        'OFFENSE' => $jenis_kejahatan,
+        'BLOCK' => $alamat,
+        'REPORT_DATE' => $tanggal_kejadian,
+        'SHIFT' => $shift,
+        'IS_SOLVED' => $kasusSelesai,
+        'DATE_SOLVED' => $tanggal_selesai,
     ];
 
-   // Add each inputJudul and inputField as a sub-document in the informasi_lainnya array
-    for ($i = 0; $i < count($inputJudul); $i++) {
-        $fieldName = $inputJudul[$i];
-        $fieldValue = $inputField[$i];
 
-        // Add the field name and value directly to the document
-        $document[$fieldName] = $fieldValue;
-    }
+    if (isset($_POST["inputJudul"])) {
+        $inputJudul = $_POST["inputJudul"];
+
+        if (isset($_POST["inputField"])) {
+            $inputField = $_POST["inputField"];
+
+               // Add each inputJudul and inputField as a sub-document in the informasi_lainnya array
+                for ($i = 0; $i < count($inputJudul); $i++) {
+                    $fieldName = $inputJudul[$i];
+                    $fieldValue = $inputField[$i];
+
+                    // Add the field name and value directly to the document
+                    $document[$fieldName] = $fieldValue;
+                }
+
+        } 
+
+    } 
 
     // Insert the document into the collection
     $bulk = new MongoDB\Driver\BulkWrite;

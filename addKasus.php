@@ -167,6 +167,17 @@
             `;
             inputContainer.appendChild(inputRow);
             }
+          
+            document.getElementById("showDateForm").addEventListener("change", function() {
+            if (this.checked) {
+              this.value = "true";
+            } else {
+              this.value = "false";
+              this.removeAttribute('value');
+            }
+          });
+
+
      </script>
    </head>
 
@@ -266,7 +277,7 @@
                       <option value="MIDNIGHT">MIDNIGHT (12 AM - 5.59 AM)</option>
                     </select>
 
-                    <input type="checkbox" id="showDateForm"> Apakah kasus ini sudah selesai diatasi?
+                    <input type="checkbox" id="showDateForm" name="kasusSelesai"> Apakah kasus ini sudah selesai diatasi?
 
                     <div id="dateForm" style="display:none;">
                       <label for="tanggalselesai">Tanggal Selesai</label>
