@@ -63,20 +63,20 @@
         //         },
         //     });
         // });
-        function hoverRow(id) {
-            document.getElementById("Angka"+id).style.color = 'white';
-            document.getElementById("Nama"+id).style.color = 'white';
-            document.getElementById("Nama"+id).style.letterSpacing = '3px';
-            document.getElementById("Jumlah"+id).style.color = 'white';
-            document.getElementById("Shift"+id).style.color = 'white';
-        }
-        function unhoverRow(id) {
-            document.getElementById("Angka"+id).style.color = 'black';
-            document.getElementById("Nama"+id).style.color = 'black';
-            document.getElementById("Nama"+id).style.letterSpacing = '0px';
-            document.getElementById("Jumlah"+id).style.color = 'white';
-            document.getElementById("Shift"+id).style.color = 'black';
-        }
+        // function hoverRow(id) {
+        //     document.getElementById("Angka"+id).style.color = 'white';
+        //     document.getElementById("Nama"+id).style.color = 'white';
+        //     document.getElementById("Nama"+id).style.letterSpacing = '3px';
+        //     document.getElementById("Jumlah"+id).style.color = 'white';
+        //     document.getElementById("Shift"+id).style.color = 'white';
+        // }
+        // function unhoverRow(id) {
+        //     document.getElementById("Angka"+id).style.color = 'black';
+        //     document.getElementById("Nama"+id).style.color = 'black';
+        //     document.getElementById("Nama"+id).style.letterSpacing = '0px';
+        //     document.getElementById("Jumlah"+id).style.color = 'white';
+        //     document.getElementById("Shift"+id).style.color = 'black';
+        // }
     </script>
     <style>
         .nav-links {
@@ -145,7 +145,7 @@
         </li>
         <br>
         <li class="log_out">
-          <a href="logoutAdmin.php">
+          <a href="logout.php">
             <i class='bx bx-log-out'></i>
             <span class="links_name">Log out</span>
           </a>
