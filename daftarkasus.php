@@ -4,58 +4,37 @@
   $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
   $week_start = date("Y-m-d", strtotime('monday this week'));
   $week_end = date("Y-m-d", strtotime('monday next week'));
-  $pipeline = [
-    [
-      '$lookup' => [
-        'from' => 'komentar',
-        'localField' => '_id',
-        'foreignField' => 'artikel',
-        'as' => 'collection2Data'
-      ]
-    ],
-    [
-      '$addFields' => [
-        'collection2Count' => ['$size' => '$collection2Data']
-      ]
-    ],
-    [
-      '$match' => [
-        '$or' => [
-            ['collection2Data' => []],
-            [
-                'collection2Data' => [
-                    '$elemMatch' => [
-                        'tanggal' => ['$gte' => 10],
-                        'field3' => ['$lte' => 20]
-                    ]
-                ]
-            ]
-        ]
-      ]
-    ],
-    [
-      '$sort' => [
-        'collection2Count' => -1
-      ]
-    ],
-    [
-      '$limit' => 500
-    ]
-  ];
-
+  $filter = [];
   $options = [
-    'cursor' => new stdClass(),
-    'allowDiskUse' => true
+    'limit' => 500
   ];
-
-  $aggregateCommand = new MongoDB\Driver\Command([
-    'aggregate' => 'kasus',
-    'pipeline' => $pipeline,
-    'cursor' => $options['cursor'],
-    'allowDiskUse' => $options['allowDiskUse']
-  ]);
-
-  $cursor = $manager->executeCommand('pds', $aggregateCommand);
+  $query = new MongoDB\Driver\Query($filter, $options);
+  $cursor = $manager->executeQuery('pds.kasus', $query);
+  $dataKasus = [];
+  foreach ($cursor as $document) {
+    $id = $document->_id;
+    $filter = [
+      'artikel' => $id,
+      'tanggal' => [
+          '$gte' => $week_start,
+          '$lte' => $week_end
+      ],
+    ];
+    $options = [];
+    $query = new MongoDB\Driver\Query($filter, $options);
+    $cursor2 = $manager->executeQuery('pds.komentar', $query);
+    $jumlah = 0;
+    foreach ($cursor2 as $data) {
+      $jumlah++;
+    }
+    $document->jumlah = $jumlah;
+    $dataKasus[] = $document;
+  }
+  usort($dataKasus, function($a, $b)
+  {
+      return $a->jumlah - $b->jumlah;
+  });
+  $dataKasus = array_reverse($dataKasus);
   $sql = "SELECT * FROM jenis_kejahatan";
   $stmt = $conn->query($sql);
   $jenis = $stmt->fetchAll(); 
@@ -212,7 +191,7 @@
                 </thead>
                 <tbody id="isiTabel">
                     <?php $i = 1; 
-                      foreach ($cursor as $data) {
+                      foreach ($dataKasus as $data) {
                         $temp = $i;
                     ?>
                     <tr onmouseover='hoverRow("<?php echo $temp ?>")' onmouseout='unhoverRow("<?php echo $temp ?>")' onclick="window.location.href='kasus.php?id=<?php echo $data->_id;?>'">

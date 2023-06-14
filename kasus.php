@@ -1,16 +1,9 @@
 <?php
-    require_once 'koneksi.php';
-    session_start();
+    require_once "php/connect.php";
     if(!isset($_SESSION['email'])){
       header("location: login.php");
       exit;
     }
-?>
-
-<?php
-    require_once "php/connect.php";
-    // session_destroy();
-    $_SESSION['user']=5;
     use MongoDB\BSON\ObjectID;
     $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
     $documentId = new MongoDB\BSON\ObjectId($_GET['id']);
@@ -21,7 +14,7 @@
     $filter = ['artikel' => $documentId];
     $options = [
       'sort' => ['tanggal' => -1],
-      'limit' => $_SESSION['jumlahBatas']
+      'limit' => 10
     ];
     $query2 = new MongoDB\Driver\Query($filter, $options);
     $komen = $manager->executeQuery("pds.komentar", $query2);
@@ -619,7 +612,7 @@
         </div>
         <div id="viewMore">
         <?php
-        if (count($jumlahIsi) > $_SESSION['jumlahBatas']) {
+        if (count($jumlahIsi) > 10) {
           echo "<h5 class='h5AddMore' style='text-align:center;' onclick='tambahView(); color:blue'>See More Comments</h5>";
         }
         ?>

@@ -15,6 +15,7 @@
         $_SESSION['email'] = $email;
         foreach ($result as $data) {
             $_SESSION['nama'] = $data['nama'];
+            $_SESSION['user'] = $data['iduser'];
         }
         header("location: home.php");
     } else {
