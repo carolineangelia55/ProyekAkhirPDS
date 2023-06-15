@@ -8,6 +8,7 @@
 
     $sql = "SELECT * FROM jenis_kejahatan";
     $stmt = $sambung->query($sql);
+    
 ?>
 
 <!DOCTYPE html>
@@ -213,7 +214,7 @@
           </a>
         </li>
         <li>
-          <a href="kelolaKegiatan.php">
+          <a href="lihatDaerah.php">
             <i class='bx bx-current-location' ></i>
             <span class="links_name">Region Data</span>
           </a>
@@ -263,6 +264,20 @@
                         echo '<option value="'.$data['idjenis'].'">'.$data['nama'].'</option>';
                       } ?>
                     </select>
+
+                    <label for="exampleFormControlInput1">Negara Kejadian</label>
+                    <select id="negara" class="form-control" name="negara" style="padding-left:20px;">
+                      <?php 
+                      $sql2 = "SELECT * FROM negara";
+                      $stmt2 = $sambung->query($sql2);
+                      foreach ($stmt2 as $data2) {
+                        echo '<option value="'.$data2['idnegara'].'">'.$data2['namanegara'].'</option>';
+                      } ?>
+                    </select>
+
+                    <label for="exampleFormControlInput1">Daerah</label>
+                    <input type="text" id="daerah" class="form-control" name="daerah" placeholder="Daerah Kejadian">
+
             
                     <label for="exampleFormControlInput1">Alamat</label>
                     <input type="text" id="alamat" class="form-control" name="alamat" placeholder="Alamat Kejadian">

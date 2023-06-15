@@ -17,15 +17,25 @@ $collectionName = 'kasus';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Retrieve form data
     $jenis_kejahatan = $_POST["jenis_kejahatan"];
+    $negara = $_POST["negara"];
+    $daerah = $_POST["daerah"];
     $alamat = $_POST["alamat"];
     $tanggal_kejadian = $_POST["tanggalkejadian"];
     $shift = $_POST["shift"];
     $tanggal_selesai = $_POST["tanggalselesai"];
     $kasusSelesai = isset($_POST["kasusSelesai"]) ? $_POST["kasusSelesai"] : "false";
 
+    require_once 'koneksi.php';
+    session_start();   
+    mysqli_query($sambung, "INSERT INTO daerah (`daerah`, `negara`) 
+    VALUES ('$daerah','$negara')");
+    $iddaerah = mysqli_insert_id($sambung);
+    $sambung->close();
+
     // Prepare the document to be inserted
     $document = [
         'OFFENSE' => $jenis_kejahatan,
+        'REGION' => $iddaerah,
         'BLOCK' => $alamat,
         'REPORT_DATE' => $tanggal_kejadian,
         'SHIFT' => $shift,
