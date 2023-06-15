@@ -276,7 +276,7 @@
               <tr>
                 <th>No</th>
                 <th>Crime Type</th>
-                <th>Total Cases (in Shift)</th>
+                <th>Total Cases (per Shift)</th>
               </tr>
             </thead>
             <tbody>
