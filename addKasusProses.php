@@ -24,6 +24,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $shift = $_POST["shift"];
     $tanggal_selesai = $_POST["tanggalselesai"];
     $kasusSelesai = isset($_POST["kasusSelesai"]) ? $_POST["kasusSelesai"] : "false";
+    $tanggal_report = date("Y-m-d H:i:s");
+    $start_date = date("Y-m-d H:i:s");
+
 
     require_once 'koneksi.php';
     session_start();   
@@ -34,12 +37,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Prepare the document to be inserted
     $document = [
+        'REPORT_DATE' => $tanggal_report,
         'OFFENSE' => $jenis_kejahatan,
         'REGION' => $iddaerah,
         'BLOCK' => $alamat,
-        'REPORT_DATE' => $tanggal_kejadian,
+        'DATE' => $tanggal_kejadian,
         'SHIFT' => $shift,
         'IS_SOLVED' => $kasusSelesai,
+        'START_DATE' => $start_date,
         'DATE_SOLVED' => $tanggal_selesai,
     ];
 
