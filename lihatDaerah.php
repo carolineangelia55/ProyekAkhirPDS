@@ -27,6 +27,15 @@
     while ($row = mysqli_fetch_assoc($result)) {
                 $jenisKejahatanValues[] = $row['nama'];
     }
+
+    // // Fetch region values from the database
+    // $query12 = "SELECT * FROM daerah";
+    // $result12 = mysqli_query($sambung, $query12);
+    // $daerahValues = array();
+    // // Fetch and store 
+    // while ($row = mysqli_fetch_assoc($result12)) {
+    //             $daerahValues[] = $row['daerah'];
+    // }
 ?>
 
 <!DOCTYPE html>
@@ -131,7 +140,7 @@
           </a>
         </li>
         <li>
-          <a href="inputJadwal.php">
+          <a href="patternWaktu.php">
             <i class='bx bx-ghost' ></i>
             <span class="links_name">Find Crime Pattern</span>
           </a>
@@ -167,9 +176,11 @@
     <div class="container">
     <div class="table-responsive" style="padding-top:100px;">
         <div style="overflow-x: auto;">
+
         <h5>Filter</h5>
             <!-- HTML form with the select element -->
             <form method="post" action="#">
+
                 <label for="jenis_kejahatan">Criminal Types: </label>
                 <select name="jenis_kejahatan" id="jenis_kejahatan">
                     <option value="">All</option>
@@ -181,10 +192,9 @@
                     ?>
                 </select>
 
-                <label for="waktu">Time: </label>
-                <select name="waktu" id="waktu">
-                    <option value="">All</option>
-                </select>
+                <label for="waktu">Date : </label>
+                <input type="date" name="waktu" id="waktu">
+
                 <input type="submit" value="Filter">
             </form>    
 
@@ -200,45 +210,55 @@
                     </tr>
                 </thead>
                 <tbody id="isiTabel">
-                    <?php
-                        include 'koneksi.php';
-                        $hitung = 0;
-                        // Membuat objek Query untuk mendapatkan semua nilai offense dan region
-                        $query = new Query([]);
+                <?php
+                    include 'koneksi.php';
 
-                        // Menjalankan query dan mengambil hasil
+                    $hitung = 0;
+                    $query = new Query([]);
+                    $cursor = $manager->executeQuery("$database.$collection", $query);
+                    $resultArray = iterator_to_array($cursor);
+
+                    $offenseValues = array_unique(array_column($resultArray, 'OFFENSE'));
+                    $regionValues = array_unique(array_column($resultArray, 'REGION'));
+
+                    $countArray = array();
+
+                    foreach ($offenseValues as $offense) {
+                        foreach ($regionValues as $region) {
+                            $query = new Query(['OFFENSE' => $offense, 'REGION' => $region]);
+                            $cursor = $manager->executeQuery("$database.$collection", $query);
+                            $resultArray = iterator_to_array($cursor);
+                            $count = count($resultArray);
+
+                            $countArray["$offense-$region"] = $count;
+                        }
+                    }
+
+                    arsort($countArray);
+
+                    foreach ($countArray as $key => $count) {
+                        list($offense, $region) = explode("-", $key);
+
+                        $query = new Query(['OFFENSE' => $offense, 'REGION' => $region]);
                         $cursor = $manager->executeQuery("$database.$collection", $query);
                         $resultArray = iterator_to_array($cursor);
 
-                        // Mengumpulkan semua nilai offense dan region dalam array
-                        $offenseValues = array_unique(array_column($resultArray, 'OFFENSE'));
-                        $regionValues = array_unique(array_column($resultArray, 'REGION'));
+                        $sqldaerah = 'SELECT * FROM daerah WHERE iddaerah=' . $region;
+                        $stmtdaerah = $sambung->query($sqldaerah);
 
-                        // Menghitung jumlah offense per region untuk setiap kombinasi offense dan region
-                        foreach ($offenseValues as $offense) {
-                            foreach ($regionValues as $region) {
-                                $query = new Query(['OFFENSE' => $offense, 'REGION' => $region]);
-                                $cursor = $manager->executeQuery("$database.$collection", $query);
-                                $resultArray = iterator_to_array($cursor);
-                                $count = count($resultArray);
+                        $sqljenis = 'SELECT * FROM jenis_kejahatan WHERE idjenis=' . $offense;
+                        $stmtjenis = $sambung->query($sqljenis);
 
-                                $sqldaerah = 'SELECT * FROM daerah WHERE iddaerah='.$region;
-                                $stmtdaerah = $sambung->query($sqldaerah);
-
-                                $sqljenis = 'SELECT * FROM jenis_kejahatan WHERE idjenis='.$offense;
-                                $stmtjenis = $sambung->query($sqljenis);
-
-                                while(($datadaerah = mysqli_fetch_array($stmtdaerah)) && ($datajenis = mysqli_fetch_array($stmtjenis)))
-                                { $hitung=$hitung+1;
-                                echo "<tr>";
-                                echo "<td>".$hitung."</td>";
-                                echo "<td>".$datadaerah['daerah']."</td>";
-                                echo "<td>".$datajenis['nama']."</td>";
-                                echo "<td>".$count."</td>";
-                                echo "</tr>";
-                                }
-                            }
+                        while (($datadaerah = mysqli_fetch_array($stmtdaerah)) && ($datajenis = mysqli_fetch_array($stmtjenis))) {
+                            $hitung = $hitung + 1;
+                            echo "<tr>";
+                            echo "<td>" . $hitung . "</td>";
+                            echo "<td>" . $datadaerah['daerah'] . "</td>";
+                            echo "<td>" . $datajenis['nama'] . "</td>";
+                            echo "<td>" . $count . "</td>";
+                            echo "</tr>";
                         }
+                    }
                     ?>
                 </tbody>
             </table>
