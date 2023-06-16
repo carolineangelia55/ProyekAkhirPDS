@@ -53,19 +53,19 @@
           </a>
         </li>
         <li>
-          <a href="inputGaleri.php">
+          <a href="lihatKriminalitas.php">
             <i class='bx bx-street-view' ></i>
             <span class="links_name">Crime Data</span>
           </a>
         </li>
         <li>
-          <a href="kelolaKegiatan.php">
+          <a href="lihatDaerah.php">
             <i class='bx bx-current-location' ></i>
             <span class="links_name">Region Data</span>
           </a>
         </li>
         <li>
-          <a href="inputJadwal.php">
+          <a href="patternWaktu.php">
             <i class='bx bx-ghost' ></i>
             <span class="links_name">Find Crime Pattern</span>
           </a>

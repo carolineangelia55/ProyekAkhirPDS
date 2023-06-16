@@ -1,41 +1,34 @@
 <?php
-    require_once 'koneksi.php';
-    session_start();
+  require_once "php/connect.php";
 
-    // Mengimpor kelas-kelas yang diperlukan
-    use MongoDB\BSON\ObjectID;
-    use MongoDB\Driver\Manager;
-    use MongoDB\Driver\Query;
+  // Mengimpor kelas-kelas yang diperlukan
+  use MongoDB\BSON\ObjectID;
+  use MongoDB\Driver\Manager;
+  use MongoDB\Driver\Query;
 
-    // Mendefinisikan konfigurasi koneksi MongoDB
-    $server = "mongodb://localhost:27017";
-    $database = "pds";
-    $collection = "kasus";
+  // Mendefinisikan konfigurasi koneksi MongoDB
+  $server = "mongodb://localhost:27017";
+  $database = "pds";
+  $collection = "kasus";
 
-    // Membuat objek Manager untuk koneksi MongoDB
-    $manager = new Manager($server);
+  // Membuat objek Manager untuk koneksi MongoDB
+  $manager = new Manager($server);
 
+  // Membuat query untuk mengambil data dari MongoDB
+  $query = new Query([], ['projection' => ['REGION' => 1, 'OFFENSE' => 1]]);
+  $cursor = $manager->executeQuery("$database.$collection", $query);
 
-    // Fetch jenis_kejahatan values from the database
-    $query = "SELECT * FROM jenis_kejahatan";
-    $result = mysqli_query($sambung, $query);
-            
-    // Create an array to store the jenis_kejahatan values
-    $jenisKejahatanValues = array();
-            
-    // Fetch and store the jenis_kejahatan values in the array
-    while ($row = mysqli_fetch_assoc($result)) {
-                $jenisKejahatanValues[] = $row['nama'];
-    }
+  include 'koneksi.php';
+  // Fetch jenis_kejahatan values from the database
+  $query = "SELECT * FROM daerah";
+  $result = mysqli_query($sambung, $query);
+  // Create an array to store the jenis_kejahatan values
+  $daerahValues = array();
+  // Fetch and store the jenis_kejahatan values in the array
+  while ($row = mysqli_fetch_assoc($result)) {
+              $daerahValues[] = $row['daerah'];
+  }
 
-    // // Fetch region values from the database
-    // $query12 = "SELECT * FROM daerah";
-    // $result12 = mysqli_query($sambung, $query12);
-    // $daerahValues = array();
-    // // Fetch and store 
-    // while ($row = mysqli_fetch_assoc($result12)) {
-    //             $daerahValues[] = $row['daerah'];
-    // }
 ?>
 
 <!DOCTYPE html>
@@ -128,13 +121,13 @@
           </a>
         </li>
         <li>
-          <a href="lihatKriminalitas.php">
+          <a href="lihatKriminalitas.php" class="active">
             <i class='bx bx-street-view' ></i>
             <span class="links_name">Crime Data</span>
           </a>
         </li>
         <li>
-          <a href="lihatDaerah.php" class="active">
+          <a href="lihatDaerah.php">
             <i class='bx bx-current-location' ></i>
             <span class="links_name">Region Data</span>
           </a>
@@ -164,7 +157,7 @@
     <nav>
       <div class="sidebar-button">
         <i class='bx bx-menu sidebarBtn'></i>
-        <span class="dashboard">Region Data</span>
+        <span class="dashboard">Crime Data</span>
       </div>
 
       <div class="profile-details" style="padding:10px; position:relative;">
@@ -181,13 +174,13 @@
             <!-- HTML form with the select element -->
             <form method="post" action="#">
 
-                <label for="jenis_kejahatan">Criminal Types: </label>
-                <select name="jenis_kejahatan" id="jenis_kejahatan">
+                <label for="daerah">Region: </label>
+                <select name="daerah" id="daerah">
                     <option value="">All</option>
                     <?php
                     // Populate the select options from the jenisKejahatanValues array
-                    foreach ($jenisKejahatanValues as $jenisKejahatan) {
-                        echo '<option value="' . $jenisKejahatan . '">' . $jenisKejahatan . '</option>';
+                    foreach ($daerahValues as $daerahh) {
+                        echo '<option value="' . $daerahh . '">' . $daerahh . '</option>';
                     }
                     ?>
                 </select>
@@ -199,65 +192,82 @@
             </form>    
 
             <br>
+
+            <?php
+              // Mengumpulkan nilai unik dari field "REGION"
+                $uniqueValues = [];
+                foreach ($cursor as $document) {
+                    if (isset($document->REGION)) {
+                        $region = $document->REGION;
+                        if (!in_array($region, $uniqueValues)) {
+                            $uniqueValues[] = $region;
+                        }
+                    }
+                }
+            ?>
         
             <table id="example" class="table table-striped" style="width:100%; text-align: center;">
                 <thead>
                     <tr>
                         <th>No</th>
                         <th>Region</th>
-                        <th>Criminal Types</th>
-                        <th>Total Cases</th>
+                        <th>Negara</th>
+                        <th>Highest Crime Type</th>
+                        <th>Lowest Crime Type</th>
                     </tr>
                 </thead>
                 <tbody id="isiTabel">
-                <?php
-                    include 'koneksi.php';
-
-                    $hitung = 0;
-                    $query = new Query([]);
-                    $cursor = $manager->executeQuery("$database.$collection", $query);
-                    $resultArray = iterator_to_array($cursor);
-
-                    $offenseValues = array_unique(array_column($resultArray, 'OFFENSE'));
-                    $regionValues = array_unique(array_column($resultArray, 'REGION'));
-
-                    $countArray = array();
-
-                    foreach ($offenseValues as $offense) {
-                        foreach ($regionValues as $region) {
-                            $query = new Query(['OFFENSE' => $offense, 'REGION' => $region]);
-                            $cursor = $manager->executeQuery("$database.$collection", $query);
-                            $resultArray = iterator_to_array($cursor);
-                            $count = count($resultArray);
-
-                            $countArray["$offense-$region"] = $count;
+                    <?php
+                      $hitung = 0;
+                      foreach ($uniqueValues as $value) {
+                        echo "<tr>";
+                        $hitung = $hitung +1;
+                        include 'koneksi.php';
+                        $sqlregion = 'SELECT * FROM daerah WHERE iddaerah='.$value;
+                        $stmtregion = $sambung->query($sqlregion);
+                        while($data = mysqli_fetch_array($stmtregion))
+                        {
+                          echo "<td>".$hitung."</td>";
+                            echo "<td>".$data['daerah']."</td>";
+                            $sqlnegararegion = 'SELECT * FROM negara WHERE idnegara='.$data['negara'];
+                            $stmtnegararegion = $sambung->query($sqlnegararegion);
+                            while($data2 = mysqli_fetch_array($stmtnegararegion))
+                            {
+                                echo "<td>".$data2['namanegara']."</td>";
+                            }
                         }
-                    }
-
-                    arsort($countArray);
-
-                    foreach ($countArray as $key => $count) {
-                        list($offense, $region) = explode("-", $key);
-
-                        $query = new Query(['OFFENSE' => $offense, 'REGION' => $region]);
+                    
+                        // Count the most frequent and least frequent offenses per region
+                        $query = new Query(['REGION' => $value], ['projection' => ['OFFENSE' => 1]]);
                         $cursor = $manager->executeQuery("$database.$collection", $query);
-                        $resultArray = iterator_to_array($cursor);
-
-                        $sqldaerah = 'SELECT * FROM daerah WHERE iddaerah=' . $region;
-                        $stmtdaerah = $sambung->query($sqldaerah);
-
-                        $sqljenis = 'SELECT * FROM jenis_kejahatan WHERE idjenis=' . $offense;
-                        $stmtjenis = $sambung->query($sqljenis);
-
-                        while (($datadaerah = mysqli_fetch_array($stmtdaerah)) && ($datajenis = mysqli_fetch_array($stmtjenis))) {
-                            $hitung = $hitung + 1;
-                            echo "<tr>";
-                            echo "<td>" . $hitung . "</td>";
-                            echo "<td>" . $datadaerah['daerah'] . "</td>";
-                            echo "<td>" . $datajenis['nama'] . "</td>";
-                            echo "<td>" . $count . "</td>";
-                            echo "</tr>";
+                        $offenseCounts = [];
+                        foreach ($cursor as $document) {
+                            if (isset($document->OFFENSE)) {
+                                $offense = $document->OFFENSE;
+                                if (!isset($offenseCounts[$offense])) {
+                                    $offenseCounts[$offense] = 0;
+                                }
+                                $offenseCounts[$offense]++;
+                            }
                         }
+                        $highestCrimeType = array_search(max($offenseCounts), $offenseCounts);
+                        $lowestCrimeType = array_search(min($offenseCounts), $offenseCounts);
+                    
+                        $sqlmaxoff = 'SELECT * FROM jenis_kejahatan WHERE idjenis='.$highestCrimeType;
+                        $stmtmaxoff = $sambung->query($sqlmaxoff);
+                        while($data = mysqli_fetch_array($stmtmaxoff))
+                        {
+                            echo "<td>".$data['nama']."</td>";
+                        }
+                    
+                        $sqlminoff = 'SELECT * FROM jenis_kejahatan WHERE idjenis='.$lowestCrimeType;
+                        $stmtminoff = $sambung->query($sqlminoff);
+                        while($data = mysqli_fetch_array($stmtminoff))
+                        {
+                            echo "<td>".$data['nama']."</td>";
+                        }
+                        
+                        echo "</tr>";
                     }
                     ?>
                 </tbody>
