@@ -17,6 +17,7 @@ $collectionName = 'kasus';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Retrieve form data
     $jenis_kejahatan = $_POST["jenis_kejahatan"];
+    $jenis_kejahatan = intval($jenis_kejahatan);
     $negara = $_POST["negara"];
     $daerah = $_POST["daerah"];
     $alamat = $_POST["alamat"];
@@ -31,11 +32,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     require_once 'koneksi.php';
     session_start();   
-    mysqli_query($sambung, "INSERT INTO daerah (`daerah`, `negara`) 
-    VALUES ('$daerah','$negara')");
-    $iddaerah = mysqli_insert_id($sambung);
-    $sambung->close();
 
+    $query = mysqli_query($sambung, "SELECT * FROM daerah WHERE daerah='$daerah'");
+    if (mysqli_num_rows($query) > 0) {
+        $iddaerahQuery = mysqli_query($sambung, "SELECT iddaerah FROM daerah WHERE daerah='$daerah'");
+        $iddaerahRow = mysqli_fetch_assoc($iddaerahQuery);
+        $iddaerah = $iddaerahRow['iddaerah'];
+        $sambung->close(); 
+    } else {
+        mysqli_query($sambung, "INSERT INTO daerah (`daerah`, `negara`) 
+        VALUES ('$daerah','$negara')");
+        $iddaerah = mysqli_insert_id($sambung);
+        $sambung->close();    
+    }
+
+    
     // Prepare the document to be inserted
     $document = [
         'REPORT_DATE' => $tanggal_report,
