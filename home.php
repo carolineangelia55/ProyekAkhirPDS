@@ -5,6 +5,45 @@
       header("location: login.php");
       exit;
     }
+      require_once "php/connect.php";
+  use MongoDB\BSON\ObjectID;
+  $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+  $week_start = date("Y-m-d", strtotime('monday this week'));
+  $week_end = date("Y-m-d", strtotime('monday next week'));
+  $filter = [];
+  $options = [
+    'limit' => 500
+  ];
+  $query = new MongoDB\Driver\Query($filter, $options);
+  $cursor = $manager->executeQuery('pds.kasus', $query);
+  $dataKasus = [];
+  foreach ($cursor as $document) {
+    $id = $document->_id;
+    $filter = [
+      'artikel' => $id,
+      'tanggal' => [
+          '$gte' => $week_start,
+          '$lte' => $week_end
+      ],
+    ];
+    $options = [];
+    $query = new MongoDB\Driver\Query($filter, $options);
+    $cursor2 = $manager->executeQuery('pds.komentar', $query);
+    $jumlah = 0;
+    foreach ($cursor2 as $data) {
+      $jumlah++;
+    }
+    $document->jumlah = $jumlah;
+    $dataKasus[] = $document;
+  }
+  usort($dataKasus, function($a, $b)
+  {
+      return $a->jumlah - $b->jumlah;
+  });
+  $dataKasus = array_reverse($dataKasus);
+  $sql = "SELECT * FROM jenis_kejahatan";
+  $stmt = $conn->query($sql);
+  $jenis = $stmt->fetchAll(); 
 ?>
 
 

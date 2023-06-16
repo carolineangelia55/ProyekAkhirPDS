@@ -3,6 +3,7 @@
     if(!isset($_SESSION['email'])){
       header("location: login.php");
       exit;
+    }
     use MongoDB\BSON\ObjectID;
     $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
     $documentId = new MongoDB\BSON\ObjectId($_GET['id']);
