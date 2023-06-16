@@ -30,8 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $shift = $_POST["shift"];
     $tanggal_selesai = $_POST["tanggalselesai"];
     $kasusSelesai = isset($_POST["kasusSelesai"]) ? $_POST["kasusSelesai"] : "false";
-    $tanggal_report = date("Y/m/d h:i:s A");
-    $start_date = date("Y/m/d h:i:s A");
+    $tanggal_report = date("d/m/Y h:i:s A");
+    $start_date = date("d/m/Y h:i:s A");
 
 
     require_once 'koneksi.php';
