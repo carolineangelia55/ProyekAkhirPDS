@@ -161,7 +161,7 @@
           </a>
         </li>
         <li>
-          <a href="kelolaKegiatan.php">
+          <a href="lihatDaerah.php">
             <i class='bx bx-current-location' ></i>
             <span class="links_name">Region Data</span>
           </a>
