@@ -1,18 +1,16 @@
 <?php
-    require_once 'koneksi.php';
-    session_start();
-    if(!isset($_SESSION['email'])){
-      header("location: login.php");
-      exit;
-    }
-      require_once "php/connect.php";
+  require_once "php/connect.php";
+  if(!isset($_SESSION['email'])){
+    header("location: login.php");
+    exit;
+  }    
   use MongoDB\BSON\ObjectID;
   $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
   $week_start = date("Y-m-d", strtotime('monday this week'));
   $week_end = date("Y-m-d", strtotime('monday next week'));
   $filter = [];
   $options = [
-    'limit' => 500
+    'limit' => 3
   ];
   $query = new MongoDB\Driver\Query($filter, $options);
   $cursor = $manager->executeQuery('pds.kasus', $query);
@@ -61,14 +59,23 @@
      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.all.min.js"></script>
      <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.min.css'>
      <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@900&display=swap" rel="stylesheet">
      <style>
         body {
             font-family: sans-serif;
         }
-
+        h1 {
+          font-family: 'Inconsolata', monospace;
+          padding-top:100px;
+          margin-left:100px;
+          margin-bottom:20px;
+        }
         .container {
             display: flex;
             align-items: flex-end;
+            border:1px solid black;
         }
 
         .podium__item {
@@ -86,6 +93,8 @@
         .podium__city {
             text-align: center;
             padding: 0 .5rem;
+            font-family: 'Inconsolata', monospace;
+            font-size:120%;
         }
 
         .podium__number {
@@ -96,7 +105,7 @@
         .podium .first {
             width: 300px;
             min-height: 300px;
-            background-image: url('assets/theft.png');
+            background-image: url('assets/<?php echo $jenis[$dataKasus[0]->OFFENSE-1]['gambar'] ?>');
             background-size: 300px 300px;
             /* background-color:white; */
             border: 1px black solid;
@@ -107,7 +116,7 @@
         .podium .second {
             width: 200px;
             min-height: 200px;
-            background-image: url('assets/vehicletheft.png');
+            background-image: url('assets/<?php echo $jenis[$dataKasus[1]->OFFENSE-1]['gambar'] ?>');
             /* background-color:white; */
             background-size: 200px 200px;
             border: 1px black solid;
@@ -117,11 +126,16 @@
         .podium .third {
             width: 150px;
             min-height: 150px;
-            background-image: url('assets/burglary.png');
+            background-image: url('assets/<?php echo $jenis[$dataKasus[2]->OFFENSE-1]['gambar'] ?>');
             background-size: 150px 150px;
             /* background-color:white; */
             border: 1px black solid;
             box-shadow:10px 10px black;
+        }
+
+        .podium__item:hover {
+          background-color:#F8F6F0;
+          border-radius:50%;
         }
 
      </style>
@@ -200,14 +214,14 @@
         <i class='bx bx-chevron-down' style="color:white; position:absolute; right:10px;"></i>
       </div>
     </nav>
-
-    <div class="container podium" style="padding-top:100px; justify-content: center;">
-        <div class="podium__item">
-            <p class="podium__city">Annecy</p>
+    <h1>TOP 3 KASUS MINGGU INI: </h1>
+    <div class="container podium" style=" justify-content: center;">
+        <div class="podium__item" onclick="window.location.href='kasus.php?id=<?php echo $dataKasus[1]->_id ?>'">
+            <p class="podium__city" style="width:200px"><?php echo $jenis[$dataKasus[1]->OFFENSE-1]['nama'] ?> at <?php echo $dataKasus[1]->BLOCK ?></p>
             <div class="podium__rank second"></div>
         </div>
-        <div class="podium__item">
-            <p class="podium__city">Saint-Gervais</p>
+        <div class="podium__item" onclick="window.location.href='kasus.php?id=<?php echo $dataKasus[0]->_id ?>'">
+            <p class="podium__city" style="width:300px"><?php echo $jenis[$dataKasus[0]->OFFENSE-1]['nama'] ?> at <?php echo $dataKasus[0]->BLOCK ?></p>
             <div class="podium__rank first">
             <!-- <svg class="podium__number" viewBox="0 0 27.476 75.03" xmlns="http://www.w3.org/2000/svg"> -->
             <g transform="matrix(1, 0, 0, 1, 214.957736, -43.117417)">
@@ -216,8 +230,8 @@
             </svg>
             </div>
         </div>
-        <div class="podium__item">
-            <p class="podium__city" style="width:150px">HAHAHAHAH DHGDBDKA DGSFSBF HEGFKE</p>
+        <div class="podium__item" onclick="window.location.href='kasus.php?id=<?php echo $dataKasus[2]->_id ?>'">
+            <p class="podium__city" style="width:150px"><?php echo $jenis[$dataKasus[2]->OFFENSE-1]['nama'] ?> at <?php echo $dataKasus[2]->BLOCK ?></p>
             <div class="podium__rank third"></div>
         </div>
     </div>

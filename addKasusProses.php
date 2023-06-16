@@ -21,11 +21,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $daerah = $_POST["daerah"];
     $alamat = $_POST["alamat"];
     $tanggal_kejadian = $_POST["tanggalkejadian"];
+    $waktu = $_POST["waktukejadian"];
     $shift = $_POST["shift"];
     $tanggal_selesai = $_POST["tanggalselesai"];
     $kasusSelesai = isset($_POST["kasusSelesai"]) ? $_POST["kasusSelesai"] : "false";
-    $tanggal_report = date("Y-m-d H:i:s");
-    $start_date = date("Y-m-d H:i:s");
+    $tanggal_report = date("Y/m/d h:i:s A");
+    $start_date = date("Y/m/d h:i:s A");
 
 
     require_once 'koneksi.php';
@@ -41,13 +42,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'OFFENSE' => $jenis_kejahatan,
         'REGION' => $iddaerah,
         'BLOCK' => $alamat,
-        'DATE' => $tanggal_kejadian,
+        'date' => $tanggal_kejadian.' '.$waktu_kejadian.':00',
         'SHIFT' => $shift,
         'IS_SOLVED' => $kasusSelesai,
-        'START_DATE' => $start_date,
-        'DATE_SOLVED' => $tanggal_selesai,
+        'START_DATE' => $start_date
     ];
-
+    if ($tanggal_selesai != "") {
+        $document['END_DATE'] = $tanggal_selesai;
+    }
 
     if (isset($_POST["inputJudul"])) {
         $inputJudul = $_POST["inputJudul"];

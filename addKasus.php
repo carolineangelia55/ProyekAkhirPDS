@@ -131,6 +131,22 @@
                 justify-content: space-between;
             }
 
+            #buttonAdd {
+              margin-top:15px;
+              padding: 5px 15px;
+              background-color:transparent;
+              color:black;
+              border: 1px solid black;
+              border-radius: 10px;
+            }
+            #buttonAdd:hover {
+              background-color:black;
+              color:white;
+            }
+            .removeButton {
+              margin-top:10px;
+              margin-right:10px;
+            }
      </style>
      <script>
           document.addEventListener("DOMContentLoaded", function() {
@@ -279,11 +295,15 @@
                     <input type="text" id="daerah" class="form-control" name="daerah" placeholder="Daerah Kejadian">
 
             
-                    <label for="exampleFormControlInput1">Alamat</label>
+                    <label for="exampleFormControlInput1">Lokasi</label>
                     <input type="text" id="alamat" class="form-control" name="alamat" placeholder="Alamat Kejadian">
 
                     <label for="exampleFormControlInput1">Tanggal Kejadian</label>
                     <input type="date" id="tanggalkejadian" class="form-control" name="tanggalkejadian">
+
+                    <label for="exampleFormControlInput1">Waktu Kejadian</label>
+                    <input type="time" style="padding:5px 20px; border: 1px solid grey; border-radius: 10px;" id="waktukejadian" class="form-control" name="waktukejadian">
+                    <br>
                     
                     <label for="exampleFormControlInput1">Shift Kejadian</label>
                     <select id="shift" name="shift">
@@ -302,17 +322,9 @@
                     <br>
                     <div id="inputContainer">
                     <div class="inputRow">
-                    <div style="position: relative;">
-
-                    <div class="row">
-                    <input type="textarea" name="inputJudul[]" class="textInput" placeholder="Judul Informasi Lainnya" required style="padding-right: 37px; margin-right: 10px; flex: 1;">
-                    <input type="textarea" name="inputField[]" class="textInput" placeholder="Isi Informasi Lainnya" required style="padding-right: 37px; flex: 2;">
-                    </div>
-                    <span style="position: absolute; top: 0; right: 0; padding-left: 5px; padding-top: 5px; font-size: 20px; color: black; cursor: pointer;" class="removeButton" onclick="removeInput(this)">x</span>
                     </div>
                     </div>
-                    </div>
-                    <button type="submit" onclick="addInput()">Add Informasi Lainnya</button><br><br> 
+                    <button type="submit" id="buttonAdd" onclick="addInput()">Add Informasi Lainnya</button><br><br> 
                     
                     <input type="submit" value="Submit"></input>
                   </form>

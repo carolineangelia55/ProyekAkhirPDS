@@ -361,7 +361,7 @@
           </a>
         </li>
         <li>
-          <a href="kelolaKegiatan.php">
+          <a href="lihatDaerah.php">
             <i class='bx bx-current-location' ></i>
             <span class="links_name">Region Data</span>
           </a>
@@ -380,7 +380,7 @@
         </li>
         <br>
         <li class="log_out">
-          <a href="logoutAdmin.php">
+          <a href="logout.php">
             <i class='bx bx-log-out'></i>
             <span class="links_name">Log out</span>
           </a>

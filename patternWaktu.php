@@ -43,40 +43,15 @@
     <link rel="stylesheet" href="css/page.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.all.min.js"></script>
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.min.css'>    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>  
+    <script src="https://cdn.canvasjs.com/jquery.canvasjs.min.js"></script>
     <script>
-        // $(document).ready(function() {
-        //     var table = $('#example').DataTable( {
-        //     dom: "B<'row'<'col-sm-6'l><'col-sm-6'f>>tipr",
-        //         buttons: [
-        //         'copy','csv','excel'
-        //         ],
-        //         buttons: {
-        //         dom: {
-        //             button:{
-        //             tag: "button",
-        //             className: "btn btn-outline-dark mb-3 mx-1 rounded p-2"
-        //             },
-        //             buttonLiner: {
-        //             tag: null
-        //             }
-        //         }
-        //         },
-        //     });
-        // });
-        // function hoverRow(id) {
-        //     document.getElementById("Angka"+id).style.color = 'white';
-        //     document.getElementById("Nama"+id).style.color = 'white';
-        //     document.getElementById("Nama"+id).style.letterSpacing = '3px';
-        //     document.getElementById("Jumlah"+id).style.color = 'white';
-        //     document.getElementById("Shift"+id).style.color = 'white';
-        // }
-        // function unhoverRow(id) {
-        //     document.getElementById("Angka"+id).style.color = 'black';
-        //     document.getElementById("Nama"+id).style.color = 'black';
-        //     document.getElementById("Nama"+id).style.letterSpacing = '0px';
-        //     document.getElementById("Jumlah"+id).style.color = 'white';
-        //     document.getElementById("Shift"+id).style.color = 'black';
-        // }
+      $(document).ready(function() {
+        $('select').on('change', function() {
+          f = $(this).find(":checked").val();
+          window.location = 'patternWaktu.php?filter='+f;
+        });
+      });
     </script>
     <style>
         .nav-links {
@@ -91,6 +66,19 @@
         th, td {
           border: 1px solid black;
           padding: 8px;
+        }
+        img{
+          pointer-events: none;
+        }
+        select {
+          border-radius:5px;
+          padding:2px 5px;
+          float:right;
+          background-color:transparent;
+          margin-right:20px;
+          position:relative;
+          z-index:1;
+
         }
     </style>
 </head>
@@ -169,6 +157,12 @@
     <div class="table-responsive" style="padding-top:100px;">
         <div style="overflow-x: auto;">
         <h3>Pattern Based on Offence</h3>
+        <select name="filter" id="filter">
+          <option id="filter1" value="1">Percentage Chart</option>
+          <option id="filter2" value="2" <?php if (isset($_GET['filter'])) { if ($_GET['filter']==2) { echo 'selected'; }}?>>Comparasion Chart</option>
+        </select>
+        <div id="chartContainer" style="height: 300px; width: 100%; position: relative;"></div>
+
             <table id="example" class="table table-striped" style="width:100%; text-align: center;">
                 <thead>
                     <tr>
@@ -189,6 +183,7 @@
 
                       // Melakukan perulangan untuk setiap value offense
                       $count = 0;
+                      $hasil = [];
                       foreach ($valueOffenses as $offense) {
                           $count = $count + 1;
                           // Membuat objek Query untuk mencari jumlah dokumen dengan kombinasi offense dan shift
@@ -203,9 +198,12 @@
 
                           // Mengurutkan shift berdasarkan jumlah
                           arsort($shiftCount);
-
+                          
                           // Mengambil shift dengan jumlah terbanyak
                           $mostFrequentShift = array_key_first($shiftCount);
+
+                          // Menyimpan jumlah total kasus pada shift tsb
+                          $totalKasus[$offense] = $shiftCount[$mostFrequentShift]; 
 
                           // Menyimpan hasil count dan value shift terbanyak
                           $countByOffense[$offense] = count($resultArray);
@@ -217,14 +215,18 @@
                           $stmtcrime = $sambung->query($sqlcrime);
                           while($data = mysqli_fetch_array($stmtcrime))
                           {
-
-                          echo "<tr>";
-                          echo "<td>$count</td>";
-                          echo "<td>".$data['nama']."</td>";
+                            $row['nama'] = $data['nama'];
+                            echo "<tr>";
+                            echo "<td>$count</td>";
+                            echo "<td>".$data['nama']."</td>";
                           }
+                          $row['total'] = $countByOffense[$offense];
+                          $row['shift'] = $mostFrequentShiftByOffense[$offense];
+                          $row['jumlah'] = $totalKasus[$offense];
                           echo "<td>" . $countByOffense[$offense] . "</td>";
                           echo "<td>" . $mostFrequentShiftByOffense[$offense] . "</td>";
                           echo "</tr>";
+                          array_push($hasil, $row);
                       }
                   ?>
                 </tbody>
@@ -317,5 +319,123 @@
       sidebarBtn.classList.replace("bx-menu-alt-right", "bx-menu");
       }
 </script>
+<script>
+      filter = $('#filter').find(":checked").val();
+      if (filter == 1) {
+        contentVar = '{name} </br> <strong>Percentage: </strong> </br> Total: {y[0]}%';
+        arr = [];
+        <?php foreach ($hasil as $data) { ?>
+          y1 = (parseInt("<?php echo $data['jumlah'];?>")/parseInt("<?php echo $data['total'];?>")*100);
+          y2 = 0;
+          row = {};
+          row['label'] = "<?php echo $data['nama'];?>";
+          row['y'] = [y1, y2];
+          row['name'] = "<?php echo $data['shift'];?>";
+          arr.push(row)
+        <?php } ?>
+        
+        formatName1 = "";
+        formatName2 = "";
+        ending = "%";
+        max = 100;
+      } else {
+        contentVar = '{name} </br> <strong>Cases: </strong> </br> Total: {y[0]}, Jumlah: {y[1]}';
+        arr = [];
+        <?php foreach ($hasil as $data) { ?>
+          y1 = parseInt("<?php echo $data['jumlah'];?>");
+          y2 = parseInt("<?php echo $data['total'];?>");
+          row = {};
+          row['label'] = "<?php echo $data['nama'];?>";
+          row['y'] = [y1, y2];
+          row['name'] = "<?php echo $data['shift'];?>";
+          arr.push(row)
+        <?php } ?>
+        formatName1 = "Total ";
+        formatName2 = "Jumlah ";
+        ending = "";
+        max = 60000;
+      }
+      window.onload = function () {
+
+        var chart = new CanvasJS.Chart("chartContainer", {  
+          backgroundColor: 'transparent',          
+          title:{
+            text: "Crime Type Pattern"              
+          },
+          axisY: {
+            maximum: max,
+            gridThickness: 0
+          },
+          toolTip:{
+            shared: true,
+            content: contentVar
+          },
+          data: [{
+            type: "rangeSplineArea",
+            fillOpacity: 0.1,
+            color: "#5a0303",
+            indexLabelFormatter: formatter,
+            dataPoints: arr
+          }]
+        });
+        chart.render();
+
+        var images = [];    
+
+        addImages(chart);
+
+        function addImages(chart) {
+          for(var i = 0; i < chart.data[0].dataPoints.length; i++){
+            var dpsName = chart.data[0].dataPoints[i].name;
+            if(dpsName == "EVENING"){
+              images.push($("<img>").attr("src", "assets/night.png"));
+            } else if(dpsName == "DAY"){
+            images.push($("<img>").attr("src", "assets/day.png"));
+            } else if(dpsName == "MIDNIGHT"){
+              images.push($("<img>").attr("src", "assets/midnight.png"));
+            }
+
+          images[i].attr("class", dpsName).appendTo($("#chartContainer>.canvasjs-chart-container"));
+          positionImage(images[i], i);
+          }
+        }
+
+        function positionImage(image, index) {
+          var imageCenter = chart.axisX[0].convertValueToPixel(chart.data[0].dataPoints[index].x);
+          var imageTop =  chart.axisY[0].convertValueToPixel(chart.axisY[0].maximum);
+
+          image.width("40px")
+          .css({ "left": imageCenter - 20 + "px",
+          "position": "absolute","top":imageTop + "px",
+          "position": "absolute"});
+        }
+
+        $( window ).resize(function() {
+          var cloudyCounter = 0, rainyCounter = 0, sunnyCounter = 0;    
+          var imageCenter = 0;
+          for(var i=0;i<chart.data[0].dataPoints.length;i++) {
+            imageCenter = chart.axisX[0].convertValueToPixel(chart.data[0].dataPoints[i].x) - 20;
+            if(chart.data[0].dataPoints[i].name == "EVENING") {					
+              $(".cloudy").eq(cloudyCounter++).css({ "left": imageCenter});
+            } else if(chart.data[0].dataPoints[i].name == "DAY") {
+              $(".rainy").eq(rainyCounter++).css({ "left": imageCenter});  
+            } else if(chart.data[0].dataPoints[i].name == "MIDNIGHT") {
+              $(".sunny").eq(sunnyCounter++).css({ "left": imageCenter});  
+            }                
+          }
+        });
+
+        function formatter(e) { 
+          if(e.index === 0 && e.dataPoint.x === 0) {
+            return formatName1 + e.dataPoint.y[e.index] + ending;
+          } else if(e.index == 1 && e.dataPoint.x === 0) {
+            return formatName2 + e.dataPoint.y[e.index];
+          } else{
+            return e.dataPoint.y[e.index];
+          }
+        } 
+
+      }
+    </script>	
 </body>
 </html>
