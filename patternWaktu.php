@@ -126,7 +126,7 @@
           </a>
         </li>
         <li>
-          <a href="biodataPendeta.php">
+          <a href="pemecahanKasus.php">
             <i class='bx bx-edit-alt' ></i>
             <span class="links_name">Case-Solving Data</span>
           </a>
@@ -265,7 +265,7 @@
           ?>
 
 
-        <div class="table-responsive" style="padding-top:100px;">
+        <div class="table-responsive" style="padding-top:50px;">
             <div style="overflow-x: auto;">
 
             <h3>Pattern Based on Shift</h3>

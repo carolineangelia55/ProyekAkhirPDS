@@ -136,6 +136,7 @@
         .podium__item:hover {
           background-color:#F8F6F0;
           border-radius:50%;
+          box-shadow:10px 10px black;
         }
 
      </style>
@@ -187,7 +188,7 @@
           </a>
         </li>
         <li>
-          <a href="biodataPendeta.php">
+          <a href="pemecahanKasus.php">
             <i class='bx bx-edit-alt' ></i>
             <span class="links_name">Case-Solving Data</span>
           </a>

@@ -373,7 +373,7 @@
           </a>
         </li>
         <li>
-          <a href="biodataPendeta.php">
+          <a href="pemecahanKasus.php">
             <i class='bx bx-edit-alt' ></i>
             <span class="links_name">Case-Solving Data</span>
           </a>
