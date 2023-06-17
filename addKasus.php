@@ -317,6 +317,8 @@
                     <div id="dateForm" style="display:none;">
                       <label for="tanggalselesai">Tanggal Selesai</label>
                       <input type="date" id="tanggalselesai" class="form-control" name="tanggalselesai">
+                      <label for="exampleFormControlInput1">Waktu Selesai</label>
+                      <input type="time" style="padding:5px 20px; border: 1px solid grey; border-radius: 10px;" id="waktuselesai" class="form-control" name="waktuselesai">
                     </div>
                     
                     <br>

@@ -26,9 +26,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $alamat = $_POST["alamat"];
     $tanggal_kejadian = $_POST["tanggalkejadian"];
-    $waktu = $_POST["waktukejadian"];
+    $waktu_kejadian = $_POST["waktukejadian"];
     $shift = $_POST["shift"];
-    $tanggal_selesai = $_POST["tanggalselesai"];
+    $tanggal_selesai = date("d/m/Y", strtotime($_POST["tanggalselesai"]));
+    $waktu_selesai = $_POST['waktuselesai'];
     $kasusSelesai = isset($_POST["kasusSelesai"]) ? $_POST["kasusSelesai"] : "false";
     $tanggal_report = date("d/m/Y h:i:s A");
     $start_date = date("d/m/Y h:i:s A");
@@ -65,7 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'START_DATE' => $start_date
     ];
     if ($tanggal_selesai != "") {
-        $document['END_DATE'] = $tanggal_selesai;
+        $document['END_DATE'] = $tanggal_selesai. ' '.date('h:i:s A', strtotime($waktu_selesai.':00'));
     }
 
     if (isset($_POST["inputJudul"])) {
