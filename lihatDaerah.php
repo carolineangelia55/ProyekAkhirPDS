@@ -24,9 +24,9 @@
     $jenisKejahatanValues = array();
             
     // Fetch and store the jenis_kejahatan values in the array
-    while ($row = mysqli_fetch_assoc($result)) {
-                $jenisKejahatanValues[] = $row['nama'];
-    }
+    // while ($row = mysqli_fetch_assoc($result)) {
+    //             $jenisKejahatanValues[] = $row['nama'];
+    // }
 
     // // Fetch region values from the database
     // $query12 = "SELECT * FROM daerah";
@@ -63,7 +63,7 @@
     <link rel="stylesheet" href="css/page.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.all.min.js"></script>
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.min.css'>    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
-
+    <script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
     <script>
         $(document).ready(function() {
             var table = $('#example').DataTable( {
@@ -84,6 +84,25 @@
                 },
             });
         });
+        function submitFilter() {
+          jenis = document.getElementById('jenis_kejahatan').value;
+          waktu = document.getElementById('waktu').value;
+          link = "lihatDaerah.php";
+          cek = 0;
+          if (jenis != 0) {
+            link += "?jenis="+jenis;
+            cek += 1;
+          } 
+          if (waktu != "") {
+            if (cek==0) {
+              link += "?";
+            } else {
+              link += "&";
+            }
+            link += "date="+waktu;
+          }
+          window.location = link;
+        }
     </script>
         
     <style>
@@ -99,6 +118,22 @@
         th, td {
           border: 1px solid black;
           padding: 8px;
+        }
+        select, input {
+          border-radius:5px;
+          padding:2px 5px;
+        }
+        .buttonSubmit {
+          padding: 5px 15px;
+          background-color:transparent;
+          color:black;
+          border: 1px solid black;
+          border-radius:20px;
+          margin-left:10px;
+        }
+        .buttonSubmit:hover {
+          color:white;
+          background-color:black;
         }
     </style>
 </head>
@@ -179,27 +214,32 @@
 
         <h5>Filter</h5>
             <!-- HTML form with the select element -->
-            <form method="post" action="#">
 
                 <label for="jenis_kejahatan">Criminal Types: </label>
                 <select name="jenis_kejahatan" id="jenis_kejahatan">
-                    <option value="">All</option>
+                    <option value="0">All</option>
                     <?php
                     // Populate the select options from the jenisKejahatanValues array
-                    foreach ($jenisKejahatanValues as $jenisKejahatan) {
-                        echo '<option value="' . $jenisKejahatan . '">' . $jenisKejahatan . '</option>';
+                    foreach ($result as $jenisKejahatan) {
+                        echo '<option value="' . $jenisKejahatan['idjenis'] . '"';
+                        if(isset($_GET['jenis'])) { 
+                          if($_GET['jenis']==$jenisKejahatan['idjenis']) { 
+                            echo ' selected'; 
+                          }
+                        }
+                        echo '>' . $jenisKejahatan['nama'] . '</option>';
                     }
                     ?>
                 </select>
 
                 <label for="waktu">Date : </label>
-                <input type="date" name="waktu" id="waktu">
+                <input type="date" name="waktu" id="waktu" value="<?php if(isset($_GET['date'])) { echo $_GET['date']; } ?>">
 
-                <input type="submit" value="Filter">
-            </form>    
+                <button class="buttonSubmit" value="Filter" onclick="submitFilter()">Submit</button>
 
+            <br><br>
+            <div id="chartContainer" style="height: 300px; width: 100%;"></div>
             <br>
-        
             <table id="example" class="table table-striped" style="width:100%; text-align: center;">
                 <thead>
                     <tr>
@@ -214,7 +254,12 @@
                     include 'koneksi.php';
 
                     $hitung = 0;
-                    $query = new Query([]);
+                    $filter = [];
+                    if (isset($_GET['jenis'])) {
+                      $filter['OFFENSE'] = intval($_GET['jenis']);
+                    }
+                    $options = [];
+                    $query = new MongoDB\Driver\Query($filter, $options);
                     $cursor = $manager->executeQuery("$database.$collection", $query);
                     $resultArray = iterator_to_array($cursor);
 
@@ -225,7 +270,17 @@
 
                     foreach ($offenseValues as $offense) {
                         foreach ($regionValues as $region) {
-                            $query = new Query(['OFFENSE' => $offense, 'REGION' => $region]);
+                            if (isset($_GET['date'])) {
+                              $startDate = $_GET['date'] . ' 00:00:00';
+                              $endDate = $_GET['date'] . ' 23:59:59';
+                              $filter['date'] = [
+                                '$gte' => $startDate,
+                                '$lte' => $endDate
+                              ];
+                            }
+                            $filter['REGION'] = $region;
+                            $filter['OFFENSE'] = $offense;
+                            $query = new MongoDB\Driver\Query($filter, $options);
                             $cursor = $manager->executeQuery("$database.$collection", $query);
                             $resultArray = iterator_to_array($cursor);
                             $count = count($resultArray);
@@ -235,7 +290,7 @@
                     }
 
                     arsort($countArray);
-
+                    $chartData = [];
                     foreach ($countArray as $key => $count) {
                         list($offense, $region) = explode("-", $key);
 
@@ -243,7 +298,7 @@
                         $cursor = $manager->executeQuery("$database.$collection", $query);
                         $resultArray = iterator_to_array($cursor);
 
-                        $sqldaerah = 'SELECT * FROM daerah WHERE iddaerah=' . $region;
+                        $sqldaerah = 'SELECT * FROM daerah d JOIN negara n ON d.negara=n.idnegara WHERE iddaerah=' . $region;
                         $stmtdaerah = $sambung->query($sqldaerah);
 
                         $sqljenis = 'SELECT * FROM jenis_kejahatan WHERE idjenis=' . $offense;
@@ -251,9 +306,15 @@
 
                         while (($datadaerah = mysqli_fetch_array($stmtdaerah)) && ($datajenis = mysqli_fetch_array($stmtjenis))) {
                             $hitung = $hitung + 1;
+                            $namaDaerah = $datadaerah['daerah'] . ", ".$datadaerah['namanegara'];
+                            if (isset($chartData[$namaDaerah])) {
+                              $chartData[$namaDaerah] += $count;
+                            } else {
+                              $chartData[$namaDaerah] = $count;
+                            }
                             echo "<tr>";
                             echo "<td>" . $hitung . "</td>";
-                            echo "<td>" . $datadaerah['daerah'] . "</td>";
+                            echo "<td>" . $namaDaerah ."</td>";
                             echo "<td>" . $datajenis['nama'] . "</td>";
                             echo "<td>" . $count . "</td>";
                             echo "</tr>";
@@ -262,7 +323,6 @@
                     ?>
                 </tbody>
             </table>
-
         </div>
     </div>
 
@@ -280,6 +340,40 @@
       }else
       sidebarBtn.classList.replace("bx-menu-alt-right", "bx-menu");
       }
+      window.onload = function () {
+
+var chart = new CanvasJS.Chart("chartContainer", {
+  backgroundColor: 'transparent',
+	animationEnabled: true,
+	theme: "light2", // "light1", "light2", "dark1", "dark2"
+	title: {
+		text: "Comparasion Chart"
+	},
+	axisY: {
+		title: "Total Cases"
+	},
+	axisX: {
+		title: "Region"
+	},
+	data: [{
+		type: "column",
+		dataPoints: [
+      <?php 
+      $count = 0;
+      foreach ($chartData as $key => $data) { 
+        if ($count != 0) {
+          echo ", ";
+        }
+			  echo '{ label: "'.$key.'", y: '.$data.' }';	
+        $count++;
+      } ?>
+			
+		]
+	}]
+});
+chart.render();
+
+}
 </script>
 </body>
 </html>

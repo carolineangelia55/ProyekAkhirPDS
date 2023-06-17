@@ -47,22 +47,19 @@
               '$regex' => '^'.preg_quote($formattedDate, '/')
         ];
     }
-    $sort = 0;
-    if ($_POST['sort'] == 1) {
-        $sort = -1;
-    } else {
-        $sort = 1;
-    }
-    $options = [
-        'sort' => ['REPORT_DATE' => $sort],
-        'limit' => 500
-    ];
+    $options = [];
     $query2 = new MongoDB\Driver\Query($filter, $options);
     $data = $manager->executeQuery("pds.kasus", $query2);
     $dataKasus = [];
-    foreach ($data as $document) {
-        $dataKasus[] = $document;
-    }    
+    $dataKasus = iterator_to_array($data);
+    usort($dataKasus, function ($a, $b) {
+        $dateA = DateTime::createFromFormat('j/n/Y g:i:s A', $a->REPORT_DATE);
+        $dateB = DateTime::createFromFormat('j/n/Y g:i:s A', $b->REPORT_DATE);
+        return $dateB <=> $dateA;
+    }); 
+    if ($_POST['sort'] != 1) {
+        $dataKasus = array_reverse($dataKasus);
+    }
     $isi = '';
     $i = 1; 
     if (count($dataKasus)>0) {
@@ -76,6 +73,9 @@
             <td id='Tgl".$temp."'>".$data->REPORT_DATE."</td>
             </tr>
             ";
+            if ($i>500) {
+                break;
+            }
         }
     }
     echo $isi;

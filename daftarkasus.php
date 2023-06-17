@@ -4,15 +4,26 @@
   $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
   $filter = [];
   $options = [
-    'sort' => ['REPORT_DATE' => -1],
-    'limit' => 500
+    'sort' => ['REPORT_DATE' => -1]
   ];
   $query = new MongoDB\Driver\Query($filter, $options);
   $cursor = $manager->executeQuery('pds.kasus', $query);
   $dataKasus = [];
-  foreach ($cursor as $document) {
+  $count = 0;
+  $resultArray = iterator_to_array($cursor);
+  usort($resultArray, function ($a, $b) {
+    $dateA = DateTime::createFromFormat('j/n/Y g:i:s A', $a->REPORT_DATE);
+    $dateB = DateTime::createFromFormat('j/n/Y g:i:s A', $b->REPORT_DATE);
+    return $dateB <=> $dateA;
+  });
+  foreach ($resultArray as $document) {
     $dataKasus[] = $document;
+    $count++;
+    if ($count>=500) {
+      break;
+    }
   }
+
   $sql = "SELECT * FROM jenis_kejahatan";
   $stmt = $conn->query($sql);
   $jenis = $stmt->fetchAll(); 

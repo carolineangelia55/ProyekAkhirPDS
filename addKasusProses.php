@@ -28,11 +28,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $tanggal_kejadian = $_POST["tanggalkejadian"];
     $waktu_kejadian = $_POST["waktukejadian"];
     $shift = $_POST["shift"];
-    $tanggal_selesai = date("d/m/Y", strtotime($_POST["tanggalselesai"]));
+    $tanggal_selesai = date("j/n/Y", strtotime($_POST["tanggalselesai"]));
     $waktu_selesai = $_POST['waktuselesai'];
     $kasusSelesai = isset($_POST["kasusSelesai"]) ? $_POST["kasusSelesai"] : "false";
-    $tanggal_report = date("d/m/Y h:i:s A");
-    $start_date = date("d/m/Y h:i:s A");
+    $tanggal_report = date("j/n/Y g:i:s A");
+    $start_date = date("j/n/Y g:i:s A");
 
 
     require_once 'koneksi.php';

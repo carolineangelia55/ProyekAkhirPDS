@@ -425,7 +425,7 @@
           </a>
         </li>
         <li>
-          <a href="inputGaleri.php">
+          <a href="lihatKriminalitas.php">
             <i class='bx bx-street-view' ></i>
             <span class="links_name">Crime Data</span>
           </a>

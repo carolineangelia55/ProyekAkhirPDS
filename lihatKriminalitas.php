@@ -56,27 +56,78 @@
     <link rel="stylesheet" href="css/page.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.all.min.js"></script>
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.min.css'>    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
-
+    <script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
     <script>
         $(document).ready(function() {
-            var table = $('#example').DataTable( {
-            dom: "B<'row'<'col-sm-6'l><'col-sm-6'f>>tipr",
-                buttons: [
-                'copy','csv','excel'
-                ],
-                buttons: {
-                dom: {
-                    button:{
-                    tag: "button",
-                    className: "btn btn-outline-dark mb-3 mx-1 rounded p-2"
-                    },
-                    buttonLiner: {
-                    tag: null
-                    }
-                }
-                },
-            });
+          var table = $('#example').DataTable( {
+          dom: "B<'row'<'col-sm-6'l><'col-sm-6'f>>tipr",
+              buttons: [
+              'copy','csv','excel'
+              ],
+              buttons: {
+              dom: {
+                  button:{
+                  tag: "button",
+                  className: "btn btn-outline-dark mb-3 mx-1 rounded p-2"
+                  },
+                  buttonLiner: {
+                  tag: null
+                  }
+              }
+              },
+          });
         });
+        function submitFilter() {
+          daerah = document.getElementById('daerah').value;
+          if (daerah != "") {
+          $.ajax({
+              url: 'php/filterCrimeData.php',
+              type: 'post',
+              data: {
+                  daerah: daerah
+              },
+              success: function(result) {
+                document.getElementById("chartContainer").style.height = '400px'; 
+                document.getElementById("chartContainer").style.width = '100%';
+                var chart = new CanvasJS.Chart("chartContainer", {
+                  backgroundColor: 'transparent',
+                  animationEnabled: true,
+                  theme: "light2", // "light1", "light2", "dark1", "dark2"
+                  title: {
+                    text: daerah
+                  },
+                  axisY: {
+                    title: "Growth Rate (in %)",
+                    suffix: "%"
+                  },
+                  axisX: {
+                    title: "Countries"
+                  },
+                  data: [{
+                    type: "column",
+                    yValueFormatString: "#,##0.0#\"%\"",
+                    dataPoints: [
+                      { label: "India", y: 7.1 },	
+                      { label: "China", y: 6.70 },	
+                      { label: "Indonesia", y: 5.00 },
+                      { label: "Australia", y: 2.50 },	
+                      { label: "Mexico", y: 2.30 },
+                      { label: "UK", y: 1.80 },
+                      { label: "United States", y: 1.60 },
+                      { label: "Japan", y: 1.60 }
+                      
+                    ]
+                  }]
+                });
+                chart.render();
+              }  
+            });
+          } else {
+            document.getElementById("chartContainer").innerHTML = "";
+            document.getElementById("chartContainer").style.height = '0'; 
+            document.getElementById("chartContainer").style.width = '0';
+          }
+        }
     </script>
         
     <style>
@@ -92,6 +143,22 @@
         th, td {
           border: 1px solid black;
           padding: 8px;
+        }
+        select, input {
+          border-radius:5px;
+          padding:2px 5px;
+        }
+        .buttonSubmit {
+          padding: 5px 15px;
+          background-color:transparent;
+          color:black;
+          border: 1px solid black;
+          border-radius:20px;
+          margin-left:10px;
+        }
+        .buttonSubmit:hover {
+          color:white;
+          background-color:black;
         }
     </style>
 </head>
@@ -139,7 +206,7 @@
           </a>
         </li>
         <li>
-          <a href="biodataPendeta.php">
+          <a href="pemecahanKasus.php">
             <i class='bx bx-edit-alt' ></i>
             <span class="links_name">Case-Solving Data</span>
           </a>
@@ -172,10 +239,9 @@
 
         <h5>Filter</h5>
             <!-- HTML form with the select element -->
-            <form method="post" action="#">
 
                 <label for="daerah">Region: </label>
-                <select name="daerah" id="daerah">
+                <select name="daerah" id="daerah" onchange="submitFilter()">
                     <option value="">All</option>
                     <?php
                     // Populate the select options from the jenisKejahatanValues array
@@ -185,12 +251,8 @@
                     ?>
                 </select>
 
-                <label for="waktu">Date : </label>
-                <input type="date" name="waktu" id="waktu">
-
-                <input type="submit" value="Filter">
-            </form>    
-
+            <br>
+            <div id="chartContainer"></div>
             <br>
 
             <?php
