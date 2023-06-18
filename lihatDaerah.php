@@ -357,6 +357,8 @@ var chart = new CanvasJS.Chart("chartContainer", {
 	},
 	data: [{
 		type: "column",
+    indexLabel: "{y}",
+    yValueFormatString: "#0.##",
 		dataPoints: [
       <?php 
       $count = 0;
