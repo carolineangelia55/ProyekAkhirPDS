@@ -28,7 +28,6 @@
   while ($row = mysqli_fetch_assoc($result)) {
               $daerahValues[] = $row['daerah'];
   }
-
 ?>
 
 <!DOCTYPE html>
@@ -87,6 +86,15 @@
                   daerah: daerah
               },
               success: function(result) {
+                keys = Object.keys(result);
+                hasil = [];
+                for (var i=0; i<keys.length; i++) {
+                  row = {};
+                  row['label'] = result[keys[i]]['nama'];
+                  row['y'] = result[keys[i]]['jumlah'];
+                  hasil.push(row);
+                }
+                
                 document.getElementById("chartContainer").style.height = '400px'; 
                 document.getElementById("chartContainer").style.width = '100%';
                 var chart = new CanvasJS.Chart("chartContainer", {
@@ -97,26 +105,17 @@
                     text: daerah
                   },
                   axisY: {
-                    title: "Growth Rate (in %)",
-                    suffix: "%"
+                    title: "Total Cases",
+                    includeZero: true
                   },
                   axisX: {
-                    title: "Countries"
+                    title: "Region"
                   },
                   data: [{
                     type: "column",
-                    yValueFormatString: "#,##0.0#\"%\"",
-                    dataPoints: [
-                      { label: "India", y: 7.1 },	
-                      { label: "China", y: 6.70 },	
-                      { label: "Indonesia", y: 5.00 },
-                      { label: "Australia", y: 2.50 },	
-                      { label: "Mexico", y: 2.30 },
-                      { label: "UK", y: 1.80 },
-                      { label: "United States", y: 1.60 },
-                      { label: "Japan", y: 1.60 }
-                      
-                    ]
+                    indexLabel: "{y}",
+                    yValueFormatString: "#0.##",
+                    dataPoints: hasil
                   }]
                 });
                 chart.render();
