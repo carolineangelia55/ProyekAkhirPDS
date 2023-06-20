@@ -347,7 +347,7 @@ var chart = new CanvasJS.Chart("chartContainer", {
 	animationEnabled: true,
 	theme: "light2", // "light1", "light2", "dark1", "dark2"
 	title: {
-		text: "Comparasion Chart"
+		text: "Comparison Chart"
 	},
 	axisY: {
 		title: "Total Cases"

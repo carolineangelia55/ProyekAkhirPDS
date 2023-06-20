@@ -7,38 +7,40 @@
   use MongoDB\BSON\ObjectID;
   $manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
   $week_start = date("Y-m-d", strtotime('monday this week'));
-  $week_end = date("Y-m-d", strtotime('monday next week'));
+  $week_end = date("Y-m-d", strtotime('sunday this week'));
   $filter = [];
   $options = [
-    'limit' => 3
+    // 'limit' => 3
   ];
   $query = new MongoDB\Driver\Query($filter, $options);
-  $cursor = $manager->executeQuery('pds.kasus', $query);
-  $dataKasus = [];
+  $cursor = $manager->executeQuery('pds.komentar', $query);
+  $dataKomen = [];
   foreach ($cursor as $document) {
-    $id = $document->_id;
-    $filter = [
-      'artikel' => $id,
-      'tanggal' => [
-          '$gte' => $week_start,
-          '$lte' => $week_end
-      ],
-    ];
-    $options = [];
-    $query = new MongoDB\Driver\Query($filter, $options);
-    $cursor2 = $manager->executeQuery('pds.komentar', $query);
-    $jumlah = 0;
-    foreach ($cursor2 as $data) {
-      $jumlah++;
+    $id = (string)($document->artikel);
+    $date = date("Y-m-d", strtotime($document->tanggal));
+    if ($date <= $week_end and $date >= $week_start) {
+      if (isset($dataKomen[$id])) {
+        $dataKomen[$id] += 1;
+      } else {
+        $dataKomen[$id] = 1;
+      }
     }
-    $document->jumlah = $jumlah;
-    $dataKasus[] = $document;
   }
-  usort($dataKasus, function($a, $b)
+  uasort($dataKomen, function($a, $b)
   {
-      return $a->jumlah - $b->jumlah;
+      return $b - $a;
   });
-  $dataKasus = array_reverse($dataKasus);
+  $dataKomen = array_slice($dataKomen, 0, 3);  
+  $dataKasus = [];
+  foreach ($dataKomen as $key=>$value) {
+    $documentId = new MongoDB\BSON\ObjectId($key);
+    $filter2 = ['_id' => $documentId];
+    $query2 = new MongoDB\Driver\Query($filter2, $options);
+    $cursor2 = $manager->executeQuery('pds.kasus', $query2);
+    foreach ($cursor2 as $d) {
+      $dataKasus[] = $d;
+    }
+  }
   $sql = "SELECT * FROM jenis_kejahatan";
   $stmt = $conn->query($sql);
   $jenis = $stmt->fetchAll(); 
